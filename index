@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <!-- Crucial Meta Tag: Prevents zooming and ensures correct scaling on phones -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ABI 6TH FORM: THE GAME</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
@@ -28,6 +28,8 @@
             user-select: none;
             -webkit-user-select: none; /* Crucial for iOS */
             touch-action: none; /* Stops browser handling gestures */
+            display: flex;
+            flex-direction: column;
         }
 
         #game-wrapper {
@@ -43,7 +45,7 @@
             justify-content: center;
             align-items: center;
             background: #111;
-            padding: 10px;
+            padding: 2px;
             overflow: hidden;
             position: relative;
         }
@@ -53,9 +55,9 @@
             aspect-ratio: 4/3;
             width: 100%;
             max-height: 100%;
-            max-width: 100vh;
+            max-width: 100vh; /* Landscape constraints */
             background-color: var(--bg-color);
-            border: 4px solid #333;
+            border: 2px solid #333;
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
             outline: none;
         }
@@ -69,35 +71,56 @@
 
         /* CONTROLS AREA */
         #mobile-controls {
-            height: 240px;
-            min-height: 35vh;
+            height: auto;
+            min-height: 220px;
             background: #222;
             border-top: 4px solid #444;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 30px;
+            padding: 10px 20px;
             box-sizing: border-box;
             z-index: 1000;
-            touch-action: none; /* Critical */
+            touch-action: none;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        /* Adjust controls for landscape vs portrait */
+        @media (orientation: landscape) and (max-height: 500px) {
+            #mobile-controls {
+                position: absolute;
+                bottom: 0;
+                width: 100%;
+                background: transparent;
+                border: none;
+                pointer-events: none; /* Let touches pass through except on buttons */
+                min-height: 0;
+                padding-bottom: 20px;
+            }
+            .dpad, .action-btn-container {
+                pointer-events: auto;
+                background: rgba(0,0,0,0.5);
+                border-radius: 20px;
+                padding: 10px;
+            }
         }
 
         .dpad {
             display: grid;
-            grid-template-columns: 70px 70px 70px;
-            grid-template-rows: 70px 70px;
+            grid-template-columns: 60px 60px 60px;
+            grid-template-rows: 60px 60px;
             gap: 5px;
             touch-action: none;
         }
         
         .dpad-btn {
-            width: 70px;
-            height: 70px;
+            width: 60px;
+            height: 60px;
             background: #444;
             border-bottom: 4px solid #222;
             border-radius: 8px;
             color: #aaa;
-            font-size: 24px;
+            font-size: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -126,8 +149,8 @@
             justify-content: center;
         }
         #btn-action {
-            width: 90px;
-            height: 90px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             background: #d82020;
             border: 4px solid #900;
@@ -421,8 +444,11 @@ async function initAudio() {
 }
 function initTownMusic() {
   if (townInit) return;
-  townSynth = new Tone.Synth({oscillator:{type:"triangle"},envelope:{attack:0.02,decay:0.1,sustain:0.3,release:0.5}}).toDestination(); townSynth.volume.value = -10; 
-  townBass = new Tone.Synth({oscillator:{type:"square"},envelope:{attack:0.05,decay:0.2,sustain:0.5,release:0.5}}).toDestination(); townBass.volume.value = -8;
+  // Use PolySynth to prevent envelope interruption errors
+  townSynth = new Tone.PolySynth(Tone.Synth, {oscillator:{type:"triangle"},envelope:{attack:0.02,decay:0.1,sustain:0.3,release:0.5}}).toDestination(); 
+  townSynth.volume.value = -10; 
+  townBass = new Tone.PolySynth(Tone.Synth, {oscillator:{type:"square"},envelope:{attack:0.05,decay:0.2,sustain:0.5,release:0.5}}).toDestination(); 
+  townBass.volume.value = -8;
   townMelodySeq = new Tone.Sequence((t, n) => n && townSynth.triggerAttackRelease(n, "8n", t), ["C5", null, "E5", "G5", "A5", "G5", "E5", "C5", "D5", null, "F5", "A5", "G5", "F5", "D5", "B4"], "8n");
   townBassSeq = new Tone.Sequence((t, n) => n && townBass.triggerAttackRelease(n, "8n", t), ["C3", null, "C3", null, "F3", null, "F3", null, "G3", null, "G3", null, "C3", null, "C3", null], "4n");
   townMelodySeq.loop = true; townBassSeq.loop = true; townInit = true;
@@ -435,16 +461,22 @@ function initChapelMusic() {
 }
 function initVictoryMusic() {
     if (victoryMusicInit) return;
-    victoryMusicSynth = new Tone.Synth({oscillator:{type:"triangle"},envelope:{attack:0.01,decay:0.1,sustain:0.4,release:0.3}}).toDestination(); victoryMusicSynth.volume.value = -10;
-    victoryMusicBass = new Tone.Synth({oscillator:{type:"square"},envelope:{attack:0.05,decay:0.2,sustain:0.5,release:0.5}}).toDestination(); victoryMusicBass.volume.value = -8;
+    // Use PolySynth
+    victoryMusicSynth = new Tone.PolySynth(Tone.Synth, {oscillator:{type:"triangle"},envelope:{attack:0.01,decay:0.1,sustain:0.4,release:0.3}}).toDestination(); 
+    victoryMusicSynth.volume.value = -10;
+    victoryMusicBass = new Tone.PolySynth(Tone.Synth, {oscillator:{type:"square"},envelope:{attack:0.05,decay:0.2,sustain:0.5,release:0.5}}).toDestination(); 
+    victoryMusicBass.volume.value = -8;
     victoryMelodySeq = new Tone.Sequence((t, n) => n && victoryMusicSynth.triggerAttackRelease(n, "8n", t), ["C5", "E5", "G5", "C6", "G5", "E5", "C5", "E5", "D5", "F5", "A5", "D6", "A5", "F5", "D5", "F5", "E5", "G5", "C6", "E6", "C6", "G5", "E5", "G5", "C5", "E5", "G5", "C6", null, null, null, null], "8n");
     victoryBassSeq = new Tone.Sequence((t, n) => n && victoryMusicBass.triggerAttackRelease(n, "8n", t), ["C3", "C3", "C3", "C3", "F3", "F3", "F3", "F3", "G3", "G3", "G3", "G3", "C3", "C3", "C3", "C3"], "4n");
     victoryMelodySeq.loop = true; victoryBassSeq.loop = true; victoryMusicInit = true;
 }
 function initBattleMusic() {
   if (battleInit) return;
-  battleLead = new Tone.Synth({oscillator:{type:"square"},envelope:{attack:0.01,decay:0.1,sustain:0.3,release:0.2}}).toDestination(); battleLead.volume.value = -10; 
-  battleBass = new Tone.Synth({oscillator:{type:"square"},envelope:{attack:0.01,decay:0.1,sustain:0.4,release:0.2}}).toDestination(); battleBass.volume.value = -8;
+  // Use PolySynth
+  battleLead = new Tone.PolySynth(Tone.Synth, {oscillator:{type:"square"},envelope:{attack:0.01,decay:0.1,sustain:0.3,release:0.2}}).toDestination(); 
+  battleLead.volume.value = -10; 
+  battleBass = new Tone.PolySynth(Tone.Synth, {oscillator:{type:"square"},envelope:{attack:0.01,decay:0.1,sustain:0.4,release:0.2}}).toDestination(); 
+  battleBass.volume.value = -8;
   battleKick = new Tone.MembraneSynth().toDestination(); battleKick.volume.value = -6;
   battleNoise = new Tone.NoiseSynth({noise:{type:"white"},envelope:{attack:0.001,decay:0.12,sustain:0}}).toDestination(); battleNoise.volume.value = -12;
   battleBassSeq = new Tone.Sequence((t, n) => n && battleBass.triggerAttackRelease(n, "8n", t), ["C2", "C2", "C2", "C2", "Ab1", "Ab1", "Ab1", "Ab1", "Bb1", "Bb1", "Bb1", "Bb1", "G1", "G1", "G1", "G1"], "8n");
@@ -579,6 +611,7 @@ let currentState = STATE.INTRO;
 let frames = 0;
 let winTimer = 0; 
 let transitionTimer = 0; 
+let faintTimer = 0; 
 let introCutsceneActive = false;
 let introCutsceneFinished = false;
 let officeCutsceneActive = false; 
@@ -608,6 +641,8 @@ let matrixRain = [];
 let currentQuestion = null;
 let selectedOptionIdx = 0;
 let pendingAction = ''; 
+let battleTargetIndex = -1; // Added to track which minion
+let pendingDamage = 0;
 
 const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, " ": false };
 let keyProcessed = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, " ": false };
@@ -615,7 +650,7 @@ let keyProcessed = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRi
 window.addEventListener('keydown', e => { if(keys.hasOwnProperty(e.key) || e.key === " ") { keys[e.key] = true; } });
 window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key) || e.key === " ") { keys[e.key] = false; keyProcessed[e.key] = false; } });
 
-// --- DIALOGUE FUNCTIONS (MOVED UP TO FIX REFERENCE ERROR) ---
+// --- DIALOGUE FUNCTIONS ---
 let dialogueQueue = []; let dialogueSpeaker = "";
 function startDialogue(npc) {
     if (player.interactionCooldown > 0) return;
@@ -636,7 +671,7 @@ function advanceDialogue() {
     else { document.getElementById('dialogue-text').innerText = dialogueQueue[0]; player.interactionCooldown = 15; }
 }
 
-// --- MATRIX RAIN (MOVED HERE) ---
+// --- MATRIX RAIN ---
 function initMatrixRain() {
     matrixRain = [];
     for(let i=0; i<50; i++) {
@@ -644,6 +679,203 @@ function initMatrixRain() {
     }
 }
 initMatrixRain();
+
+// --- QUESTIONS DATABASE ---
+const QUESTIONS = [
+    { q: "According to JCQ, what must a school’s malpractice policy include?", options: ["Instructions for improving AI writing quality", "Rules for AI use in assessments", "A list of AI tools teachers recommend"], answer: 1 },
+    { q: "What are teachers responsible for confirming?", options: ["That AI tools have been used efficiently", "That students enjoyed the task", "The authenticity of each student’s work"], answer: 2 },
+    { q: "What must students do if they use AI in permitted coursework?", options: ["Paraphrase the AI output", "Reference the AI tool clearly", "Email the awarding body"], answer: 1 },
+    { q: "When can students earn marks for content produced solely by AI?", options: ["Only if they reference it correctly", "Only if the teacher supervises the AI use", "Never—AI-generated content cannot earn marks"], answer: 2 },
+    { q: "What is AI misuse according to the JCQ guidance?", options: ["Using AI to check your spelling", "Using AI to generate ideas only", "Taking AI-produced work as your own"], answer: 2 },
+    { q: "What should teachers compare work against if they suspect AI misuse?", options: ["The student’s favourite writing style", "Previous work for differences in tone/quality", "The student’s mock exam results only"], answer: 1 },
+    { q: "What should students do before signing the declaration on coursework?", options: ["Remove all references to AI", "Double-check all AI usage has been referenced", "Submit anonymously"], answer: 1 },
+    { q: "If a student misuses AI, what is a possible consequence?", options: ["A warning with no grade impact", "Extra time on their next assessment", "They may lose marks or be disqualified"], answer: 2 },
+    { q: "What is one indicator of AI-generated text?", options: ["Clear references", "Lack of local knowledge/wrong statements", "Use of British spelling"], answer: 1 },
+    { q: "If AI misuse is found after a declaration form is signed, what happens?", options: ["Ask the student to redo the work", "Report it to the awarding body", "Remove the mark and move on"], answer: 1 },
+    { q: "What is the safest way to interact with AI tools?", options: ["Share personal data to get better answers", "Avoid sharing sensitive information", "Use AI only on public computers"], answer: 1 },
+    { q: "Why is it important to check AI outputs?", options: ["AI always provides verified facts", "AI often guesses/generates inaccurate content", "AI can only give answers written by experts"], answer: 1 },
+    { q: "Which example demonstrates ethical AI use?", options: ["Using AI to impersonate someone online", "Using AI to support ideas but citing it", "Submitting AI-written work as your own"], answer: 1 },
+    { q: "What is a responsible approach when using AI for decision-making?", options: ["Rely entirely on AI recommendations", "Treat AI suggestions critically and verify", "Ignore human judgment in favour of AI"], answer: 1 },
+    { q: "Why must AI-generated content be acknowledged in academic work?", options: ["To hide how much AI was used", "Because it helps boost the grade", "Transparency prevents plagiarism"], answer: 2 }
+];
+
+// --- MISSING BATTLE FUNCTIONS IMPLEMENTED HERE ---
+
+function startBattle(type, index) {
+    playEncounterSfx();
+    battleTargetIndex = index;
+    
+    // Set Enemy Data
+    if (type === 'boss') {
+        activeBattleEnemy = { name: "MAIN GLITCH", hp: 100, maxHp: 100, lvl: 99, spriteKey: 'glitch', damage: 25 };
+    } else {
+        activeBattleEnemy = { name: "BUG", hp: 50, maxHp: 50, lvl: 5, spriteKey: 'bug', damage: 10 };
+    }
+
+    // Reset Battle State
+    battleState = 'MENU';
+    battleTurn = 'PLAYER';
+    battleMenuIdx = 0;
+    battleMsg = "A wild glitch appeared!";
+    battleEffects = [];
+    faintTimer = 0; 
+    
+    // Transition Effect
+    currentState = STATE.TRANSITION;
+    transitionTimer = 90; // 1.5 seconds transition
+}
+
+function spawnProjectile(x1, y1, x2, y2, color) {
+    battleEffects.push({
+        type: 'projectile', x: x1, y: y1, targetX: x2, targetY: y2, 
+        speed: 15, color: color, active: true
+    });
+}
+
+function updateBattle() {
+    if (battleShake > 0) battleShake--;
+
+    // Handle Projectiles
+    for (let i = battleEffects.length - 1; i >= 0; i--) {
+        let p = battleEffects[i];
+        if (p.type === 'projectile' && p.active) {
+            const dx = p.targetX - p.x;
+            const dy = p.targetY - p.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < p.speed) {
+                p.x = p.targetX;
+                p.y = p.targetY;
+                p.active = false; // Hit!
+                battleEffects.splice(i, 1);
+                // Trigger Impact Logic based on who was shooting
+                if (battleState === 'PLAYER_ANIM') {
+                    activeBattleEnemy.hp -= pendingDamage;
+                    playSound('HIT');
+                    battleShake = 5;
+                    if (activeBattleEnemy.hp <= 0) {
+                        battleState = 'FAINT_ANIM';
+                        faintTimer = 0;
+                        stopAllMusic();
+                        playEnemyDownSfx();
+                        battleMsg = "";
+                    } else {
+                        battleState = 'ENEMY_TURN_START';
+                    }
+                } else if (battleState === 'ENEMY_ANIM') {
+                    player.hp -= activeBattleEnemy.damage;
+                    playSound('HIT');
+                    battleShake = 10;
+                    battleMsg = `${activeBattleEnemy.name} hits you! -${activeBattleEnemy.damage} HP`;
+                    battleState = 'RESULT'; // Go to result screen to show damage
+                }
+            } else {
+                p.x += (dx / dist) * p.speed;
+                p.y += (dy / dist) * p.speed;
+            }
+        }
+    }
+
+    if (battleState === 'MENU') {
+        if (keys.ArrowUp && !keyProcessed.ArrowUp) { battleMenuIdx = (battleMenuIdx - 1 + 3) % 3; keyProcessed.ArrowUp = true; playSound('SELECT'); }
+        if (keys.ArrowDown && !keyProcessed.ArrowDown) { battleMenuIdx = (battleMenuIdx + 1) % 3; keyProcessed.ArrowDown = true; playSound('SELECT'); }
+        
+        if (keys[" "] && !keyProcessed[" "]) {
+            keyProcessed[" "] = true;
+            if (battleMenuIdx === 0) { // QUESTION
+                currentQuestion = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
+                selectedOptionIdx = 0;
+                battleState = 'QUESTION';
+            } else if (battleMenuIdx === 1) { // GEN-AI (Risk Attack)
+                 const hit = Math.random() > 0.4; // 60% chance to hit
+                 if (hit) {
+                     pendingDamage = 35;
+                     battleMsg = `Gen-AI Generated Code! -${pendingDamage}`;
+                     spawnProjectile(140, 370, 520, 120, '#00ffff'); // Player shoots
+                     battleState = 'PLAYER_ANIM';
+                 } else {
+                     const selfDmg = 15;
+                     player.hp -= selfDmg;
+                     battleMsg = `Gen-AI Hallucinated! You cited fake laws! -${selfDmg} HP`;
+                     playSound('WRONG');
+                     battleState = 'RESULT';
+                 }
+            } else if (battleMenuIdx === 2) { // RUN
+                if (activeBattleEnemy.spriteKey === 'glitch') {
+                    battleMsg = "You cannot run from the Main Glitch!";
+                    battleState = 'RESULT';
+                } else {
+                    currentState = STATE.ROAM;
+                    playMusic('ROAM');
+                }
+            }
+        }
+    } else if (battleState === 'QUESTION') {
+        if (keys.ArrowUp && !keyProcessed.ArrowUp) { selectedOptionIdx = (selectedOptionIdx - 1 + 3) % 3; keyProcessed.ArrowUp = true; playSound('SELECT'); }
+        if (keys.ArrowDown && !keyProcessed.ArrowDown) { selectedOptionIdx = (selectedOptionIdx + 1) % 3; keyProcessed.ArrowDown = true; playSound('SELECT'); }
+        
+        if (keys[" "] && !keyProcessed[" "]) {
+            keyProcessed[" "] = true;
+            if (selectedOptionIdx === currentQuestion.answer) {
+                pendingDamage = 25;
+                battleMsg = `Correct! Integrity Beam! -${pendingDamage}`;
+                playSound('CORRECT');
+                spawnProjectile(140, 370, 520, 120, '#44ff44'); // Green beam
+                battleState = 'PLAYER_ANIM';
+            } else {
+                battleMsg = "Wrong! The bug attacks you!";
+                playSound('WRONG');
+                battleState = 'ENEMY_TURN_START';
+            }
+        }
+    } else if (battleState === 'ENEMY_TURN_START') {
+        // Small delay before enemy shoots
+        setTimeout(() => {
+             spawnProjectile(520, 120, 140, 370, '#ff0000'); // Red glitch
+             battleState = 'ENEMY_ANIM';
+        }, 500);
+        battleState = 'WAITING'; // Just wait for timeout
+    } else if (battleState === 'RESULT') {
+        if (keys[" "] && !keyProcessed[" "]) {
+            keyProcessed[" "] = true;
+            if (player.hp <= 0) {
+                loseGame("Your academic integrity hit 0.");
+            } else {
+                battleState = 'MENU';
+            }
+        }
+    } else if (battleState === 'FAINT_ANIM') {
+        faintTimer++;
+        if (faintTimer === 60) { // 1 second mark
+            playVictoryFanfare(); // 3. Fanfare
+        }
+        if (faintTimer === 180) { // 3 seconds mark
+            battleState = 'VICTORY_WAIT';
+            battleMsg = "Enemy Defeated! Integrity Restored.";
+            playMusic('WIN'); // 4. Win Music Loop
+        }
+    } else if (battleState === 'VICTORY_WAIT') {
+        if (keys[" "] && !keyProcessed[" "]) {
+            keyProcessed[" "] = true;
+            if (activeBattleEnemy.spriteKey === 'glitch') {
+                currentState = STATE.WIN;
+                // Keep music playing
+            } else {
+                // Remove Minion
+                if (battleTargetIndex > -1) {
+                    activeMinions[battleTargetIndex].active = false;
+                }
+                currentState = STATE.ROAM;
+                playMusic('ROAM');
+            }
+        }
+    }
+}
+
+function loseGame(reason) {
+    currentState = STATE.GAMEOVER;
+    battleMsg = reason;
+    stopAllMusic();
+}
 
 // --- INPUT AND ROOM LOGIC ---
 function setupMobileControls() {
@@ -730,15 +962,17 @@ function update() {
                 if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS) {
                     const t = activeMap[ny][nx];
                     if (t === 0 && !(nx===player.gridX && ny===player.gridY)) {
-                         let hitNPC = activeNPCs.some(n => n.gridX === nx && n.gridY === ny);
-                         let hitCrowd = activeCrowd.some(c => c !== p && c.gridX === nx && c.gridY === ny);
-                         if (!hitNPC && !hitCrowd) { p.gridX = nx; p.gridY = ny; p.targetPixelX = nx * TILE_SIZE; p.targetPixelY = ny * TILE_SIZE; p.isMoving = true; p.facingRight = dx > 0; }
+                          let hitNPC = activeNPCs.some(n => n.gridX === nx && n.gridY === ny);
+                          let hitCrowd = activeCrowd.some(c => c !== p && c.gridX === nx && c.gridY === ny);
+                          if (!hitNPC && !hitCrowd) { p.gridX = nx; p.gridY = ny; p.targetPixelX = nx * TILE_SIZE; p.targetPixelY = ny * TILE_SIZE; p.isMoving = true; p.facingRight = dx > 0; }
                     }
                 }
             }
         };
         activeCrowd.forEach(p => handleEntityMove(p, false));
-        activeNPCs.forEach(n => { if (n.spriteKey === 'oneill_strict') handleEntityMove(n, true); });
+        activeNPCs.forEach(n => { 
+            if (n.isMoving || n.spriteKey === 'oneill_strict') handleEntityMove(n, true); 
+        });
 
         if (introCutsceneActive) {
             if (!player.isMoving) { if (player.gridY > 4) { tryMove(0, -1); } else { introCutsceneActive = false; introCutsceneFinished = true; player.facingRight = true; const npc = activeNPCs.find(n => n.id === 'mcmahon_intro'); if(npc) { player.interactionCooldown = 0; startDialogue(npc); } } }
@@ -767,228 +1001,6 @@ function update() {
     }
     if (currentState === STATE.DIALOGUE) { if (keys[" "] && !keyProcessed[" "] && player.interactionCooldown === 0) { keyProcessed[" "] = true; advanceDialogue(); } if (player.interactionCooldown > 0) player.interactionCooldown--; }
     if (currentState === STATE.BATTLE) updateBattle();
-}
-
-function startBattle(type, index) {
-    playEncounterSfx(); // Play encounter alarm!
-    currentState = STATE.TRANSITION; // Wipe effect first
-    transitionTimer = 90; // frames (increased for longer siren)
-    battleState = 'MENU';
-    battleTurn = 'PLAYER';
-    battleMenuIdx = 0;
-    initMatrixRain();
-    player.interactionCooldown = 20;
-    if (type === 'minion') {
-        activeBattleEnemy = { type: 'minion', name: 'MINOR BUG', hp: 50, maxHp: 50, spriteKey: 'bug', minionIndex: index, lvl: 5 };
-        battleMsg = "A wild BUG appeared!";
-    } else {
-        activeBattleEnemy = { type: 'boss', name: 'THE GLITCH', hp: 200, maxHp: 200, spriteKey: 'glitch', minionIndex: -1, lvl: 50 };
-        battleMsg = "THE GLITCH wants to battle!";
-    }
-}
-function updateBattle() {
-    if (battleShake > 0) battleShake *= 0.9; if (battleShake < 0.5) battleShake = 0;
-    for (let i = battleEffects.length - 1; i >= 0; i--) {
-        let p = battleEffects[i]; p.x += p.vx; p.y += p.vy; p.life--;
-        if (p.life <= 0) battleEffects.splice(i, 1);
-    }
-    
-    if (battleState === 'FAINT_ANIM') {
-       return; 
-    }
-    if (battleState === 'MENU') {
-        if (player.interactionCooldown > 0) player.interactionCooldown--;
-        // Use keyProcessed check for menu navigation to prevent rapid firing
-        if (keys.ArrowUp && !keyProcessed.ArrowUp && player.interactionCooldown === 0) { 
-            keyProcessed.ArrowUp = true;
-            battleMenuIdx = Math.max(0, battleMenuIdx - 1); 
-            player.interactionCooldown = 5; 
-            playSound('SELECT'); 
-        }
-        if (keys.ArrowDown && !keyProcessed.ArrowDown && player.interactionCooldown === 0) { 
-            keyProcessed.ArrowDown = true;
-            battleMenuIdx = Math.min(2, battleMenuIdx + 1); 
-            player.interactionCooldown = 5; 
-            playSound('SELECT'); 
-        }
-        if (keys[" "] && !keyProcessed[" "] && player.interactionCooldown === 0) { 
-            keyProcessed[" "] = true;
-            player.interactionCooldown = 20; 
-            selectBattleAction(battleMenuIdx); 
-        }
-    } else if (battleState === 'QUESTION') {
-        if (player.interactionCooldown > 0) player.interactionCooldown--;
-        if (keys.ArrowUp && !keyProcessed.ArrowUp && player.interactionCooldown === 0) { 
-            keyProcessed.ArrowUp = true;
-            selectedOptionIdx = Math.max(0, selectedOptionIdx - 1); 
-            player.interactionCooldown = 5; 
-            playSound('SELECT'); 
-        }
-        if (keys.ArrowDown && !keyProcessed.ArrowDown && player.interactionCooldown === 0) { 
-            keyProcessed.ArrowDown = true;
-            selectedOptionIdx = Math.min(2, selectedOptionIdx + 1); 
-            player.interactionCooldown = 5; 
-            playSound('SELECT'); 
-        }
-        if (keys[" "] && !keyProcessed[" "] && player.interactionCooldown === 0) { 
-            keyProcessed[" "] = true;
-            player.interactionCooldown = 20; 
-            checkAnswer(); 
-        }
-    }
-    
-    if (battleState === 'VICTORY_WAIT') {
-        if (keys[" "] && !keyProcessed[" "] && player.interactionCooldown === 0) {
-             keyProcessed[" "] = true;
-             player.hp = Math.min(player.maxHp, player.hp + 10); 
-             if (activeBattleEnemy.type === 'minion') {
-                activeMinions[activeBattleEnemy.minionIndex].active = false;
-                currentState = STATE.ROAM; 
-                player.interactionCooldown = 30; 
-                // Only play chapel music if in chapel, otherwise return to roam
-                if (player.currentRoom === 'CHAPEL') playMusic('CHAPEL');
-                else playMusic('ROAM');
-            } else winGame();
-        }
-        if (player.interactionCooldown > 0) player.interactionCooldown--;
-    }
-}
-function selectBattleAction(idx) {
-    if (idx === 1) { 
-        pendingAction = 'AI'; 
-        battleMsg = "Used AI Shortcut..."; 
-        battleState = 'BUSY'; // LOCK INPUT
-        setTimeout(executeAction, 1000); 
-    } else if (idx === 2) { // RUN
-        battleMsg = "Got away safely!";
-        battleState = 'BUSY';
-        setTimeout(() => {
-             currentState = STATE.ROAM;
-             player.interactionCooldown = 30;
-             // Only play chapel music if in chapel, otherwise return to roam
-             if (player.currentRoom === 'CHAPEL') playMusic('CHAPEL');
-             else playMusic('ROAM');
-        }, 1000);
-    } else {
-        // idx 0 (QUESTION)
-        pendingAction = 'DRAFT';
-        currentQuestion = getNextQuestion(); // Use the pool system instead of raw random
-        selectedOptionIdx = 0;
-        battleState = 'QUESTION';
-    }
-}
-function checkAnswer() {
-    const isCorrect = selectedOptionIdx === currentQuestion.correct;
-    if (isCorrect) { 
-        battleMsg = "It's super effective!"; 
-        playSound('CORRECT'); 
-        battleState = 'BUSY'; // LOCK INPUT
-        setTimeout(executeAction, 1000); 
-    } else {
-        battleMsg = "It wasn't very effective..."; 
-        playSound('WRONG');
-        battleState = 'ANIMATION';
-        setTimeout(() => {
-            player.hp -= 20; battleShake = 20;
-            battleEffects.push({x: 150, y: 300, vx:0, vy:-2, life:60, type:'text', text:'-20', color:'#f44'});
-            if(player.hp <= 0) loseGame("You blacked out!"); else endPlayerTurn();
-        }, 1000);
-    }
-}
-function executeAction() {
-    battleState = 'ANIMATION';
-    let dmg = 0;
-    if (pendingAction === 'DRAFT') {
-        dmg = 30 + Math.floor(Math.random()*10);
-        battleMsg = "Player used CRITICAL THINKING!";
-        battleEffects.push({x: 200, y: 350, targetX: 550, targetY: 150, vx: 10, vy: -5, life: 40, type: 'projectile', icon: ' 📄 '});
-        setTimeout(() => hitEnemy(dmg), 500);
-    } else if (pendingAction === 'AI') {
-        dmg = 60; player.auth -= 30;
-        battleMsg = "INCORRECT INFO! AI HALLUCINATED!";
-        battleEffects.push({x: 200, y: 350, targetX: 550, targetY: 150, vx: 10, vy: -5, life: 40, type: 'projectile', icon: ' 🤖 '});
-        setTimeout(() => {
-             player.hp -= 10;
-             battleEffects.push({x: 150, y: 300, vx:0, vy:-2, life:60, type:'text', text:'-10', color:'#f44'});
-             hitEnemy(dmg);
-        }, 500);
-    }
-}
-function hitEnemy(dmg) {
-    activeBattleEnemy.hp -= dmg;
-    battleEffects.push({x: 550, y: 100, vx:0, vy:-2, life:60, type:'text', text:dmg, color:'#fff'});
-    battleShake = 10; playSound('HIT');
-    
-    if (activeBattleEnemy.hp <= 0) {
-        playEnemyDownSfx(); 
-        battleState = 'FAINT_ANIM';
-        setTimeout(() => {
-            stopAllMusic(); // Stop battle music
-            playVictoryFanfare(); // Celebration fanfare
-            battleMsg = `${activeBattleEnemy.name} was destroyed!`;
-            // Start victory music after fanfare finishes
-            setTimeout(() => {
-                playMusic('WIN'); // Start victory music loop
-            }, 1200); // Wait for fanfare to play
-            setTimeout(() => {
-                battleMsg = "You gained 50 EXP & HP!";
-                playSound('CORRECT');
-                battleState = 'VICTORY_WAIT';
-                player.interactionCooldown = 20;
-            }, 1500);
-        }, 1000);
-    } else if (player.auth <= 0) loseGame("Disqualified for Malpractice!");
-    else setTimeout(endPlayerTurn, 1000);
-}
-function endPlayerTurn() {
-    battleState = 'ENEMY_TURN';
-    battleMsg = `${activeBattleEnemy.name} used HALLUCINATION!`;
-    setTimeout(enemyAttack, 1500);
-}
-function enemyAttack() {
-    let dmg = 10 + Math.floor(Math.random()*10);
-    if (activeBattleEnemy.type === 'minion') dmg = 5;
-    battleEffects.push({x: 550, y: 150, targetX: 200, targetY: 350, vx: -10, vy: 5, life: 40, type: 'projectile', spriteKey: 'bug'});
-    setTimeout(() => {
-        player.hp -= dmg; playSound('HIT');
-        battleEffects.push({x: 150, y: 300, vx:0, vy:-2, life:60, type:'text', text:`-${dmg}`, color:'#f44'});
-        battleShake = 10;
-        if (player.hp <= 0) loseGame("You blacked out!");
-        else { battleState = 'MENU'; battleMsg = "What will PLAYER do?"; player.interactionCooldown = 10; }
-    }, 500);
-}
-function winGame() { 
-    // Mark boss as defeated in the map data (not just local reference)
-    if (MAP_LAYOUTS['OFFICE'].boss) {
-        MAP_LAYOUTS['OFFICE'].boss.active = false;
-    }
-    if (activeBoss) {
-        activeBoss.active = false;
-    }
-    currentState = STATE.WIN; 
-    winTimer = 0; // Reset timer
-    playMusic('WIN'); 
-}
-function loseGame(reason) { currentState = STATE.GAMEOVER; battleMsg = reason; playMusic('NONE'); }
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    if (currentState === STATE.TRANSITION) {
-        drawMapScreen();
-        const p = 1 - (transitionTimer / 90); 
-        const shutterHeight = (canvas.height / 2) * p;
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0, 0, canvas.width, shutterHeight); 
-        ctx.fillRect(0, canvas.height - shutterHeight, canvas.width, shutterHeight); 
-        if (transitionTimer % 4 < 2) {
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-        return;
-    }
-    if (currentState === STATE.BATTLE) { drawBattle(); return; }
-    if (currentState === STATE.WIN || currentState === STATE.GAMEOVER) { drawEndScreen(); return; }
-    drawMapScreen();
 }
 function drawMapScreen() {
     ctx.fillStyle = activeRoom.color || COLORS.floor;
@@ -1046,6 +1058,96 @@ function drawMapScreen() {
     ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.font = '12px "Press Start 2P"';
     ctx.fillText(`HP: ${player.hp}`, 10, 20); 
 }
+function drawBattle() {
+    ctx.save();
+    if (battleShake > 0) ctx.translate((Math.random()-0.5)*battleShake, (Math.random()-0.5)*battleShake);
+    // Background
+    ctx.fillStyle = '#f8f8f8'; ctx.fillRect(0,0,800,600); // Light BG
+    ctx.fillStyle = '#d0e0f0'; ctx.beginPath(); ctx.moveTo(0,600); ctx.lineTo(800,600); ctx.lineTo(800,300); ctx.lineTo(0,450); ctx.fill(); // Ground
+    // Platforms
+    ctx.fillStyle = '#c0c0c0'; 
+    ctx.beginPath(); ctx.ellipse(580, 200, 120, 40, 0, 0, Math.PI*2); ctx.fill(); // Enemy Base
+    ctx.beginPath(); ctx.ellipse(200, 450, 120, 40, 0, 0, Math.PI*2); ctx.fill(); // Player Base
+    // Sprites
+    
+    // Player
+    drawSprite(ctx, player.spriteKey, 140, 370, 128, true);
+    // Enemy - Handle Fainting Logic
+    let enemyY = 120;
+    let enemyOpacity = 1.0;
+    
+    if (battleState === 'FAINT_ANIM') {
+        const progress = Math.min(1, faintTimer / 60); // Fade over 1 second
+        enemyY += progress * 50;
+        enemyOpacity = 1 - progress;
+    } else if (battleState === 'VICTORY_WAIT') {
+        enemyY += 50; 
+        enemyOpacity = 0; 
+    }
+    
+    if (battleState !== 'VICTORY_WAIT') { 
+       if (activeBattleEnemy.hp > 0 || battleState === 'FAINT_ANIM') {
+           drawSprite(ctx, activeBattleEnemy.spriteKey, 520, enemyY, 128, false, 0, enemyOpacity);
+       }
+    }
+    if (activeBattleEnemy.hp > 0) {
+        drawHealthBox(50, 50, activeBattleEnemy.name, activeBattleEnemy.lvl, activeBattleEnemy.hp, activeBattleEnemy.maxHp, false);
+    }
+    
+    drawHealthBox(450, 350, "PLAYER", 13, player.hp, player.maxHp, true);
+    battleEffects.forEach(p => {
+        if (p.type === 'projectile') { 
+            // Draw simple square projectile
+            ctx.fillStyle = p.color || '#fff';
+            ctx.fillRect(p.x - 10, p.y - 10, 20, 20);
+            ctx.strokeStyle = '#000';
+            ctx.strokeRect(p.x - 10, p.y - 10, 20, 20);
+        }
+        else { ctx.font='20px "Press Start 2P"'; ctx.fillStyle=p.color; ctx.fillText(p.text, p.x, p.y); }
+    });
+    // UI
+    ctx.fillStyle = '#222'; ctx.fillRect(0, 480, 800, 120);
+    ctx.fillStyle = '#fff'; ctx.lineWidth = 4; ctx.strokeStyle = '#666'; ctx.strokeRect(10, 490, 780, 100); ctx.fillRect(10, 490, 780, 100);
+    ctx.fillStyle = '#000'; ctx.textAlign = 'left'; ctx.font = '14px "Press Start 2P"';
+    if (battleState === 'MENU') {
+        // Dynamic Left Box Text based on Selection
+        let desc = "";
+        if (battleMenuIdx === 0) desc = "QUESTION: Answer JCQ quiz.";
+        else if (battleMenuIdx === 1) desc = "GEN-AI: Risky! (60% Hit / 40% Hurt)";
+        else if (battleMenuIdx === 2) desc = "RUN: Escape battle.";
+        ctx.fillStyle = '#000'; 
+        wrapText(ctx, desc, 35, 535, 350, 20); // Wrapped description
+        // Menu Box
+        ctx.fillStyle = '#fff'; ctx.strokeStyle = '#000'; ctx.fillRect(400, 490, 390, 100); ctx.strokeRect(400, 490, 390, 100);
+        ctx.fillStyle = '#000';
+        // Modified Menu Options per Request
+        // 0: QUESTION, 1: GEN-AI, 2: RUN
+        const opts = ["QUESTION", "GEN-AI", "RUN"];
+        ctx.fillText((battleMenuIdx===0?">":" ")+opts[0], 420, 530);
+        ctx.fillText((battleMenuIdx===1?">":" ")+opts[1], 620, 530);
+        ctx.fillText((battleMenuIdx===2?">":" ")+opts[2], 420, 560);
+    } else if (battleState === 'QUESTION') {
+        ctx.font = '12px "Press Start 2P"';
+        ctx.fillStyle = '#000';
+        // Use wrapText for questions too!
+        wrapText(ctx, currentQuestion.q, 30, 505, 740, 18);
+        
+        currentQuestion.options.forEach((o, i) => {
+            ctx.fillStyle = i === selectedOptionIdx ? '#d00' : '#000';
+            // Ensure options don't clip if wrapping pushes them down (simplified vertical stack)
+            let yPos = 545 + (i*20);
+            ctx.fillText((i===selectedOptionIdx?"> ":"  ")+o, 30, yPos);
+        });
+    } else {
+        ctx.fillStyle = '#000';
+        wrapText(ctx, battleMsg, 35, 535, 740, 20);
+        if (battleState === 'VICTORY_WAIT') {
+             ctx.fillStyle = '#d00'; 
+             ctx.fillText("[PRESS 'A' TO CONTINUE]", 450, 570);
+        }
+    }
+    ctx.restore();
+}
 function drawHealthBox(x, y, name, lvl, hp, maxHp, showNumbers) {
     // Box Body
     ctx.fillStyle = '#fff'; ctx.strokeStyle='#000'; ctx.lineWidth=3;
@@ -1095,7 +1197,7 @@ function drawEndScreen() {
         ctx.fillText("Use AI as a tool, not a replacement.", 400, 380); 
         
         ctx.fillStyle = '#ffffff';
-        ctx.fillText("Press SPACE to Restart", 400, 560);
+        ctx.fillText("Press 'A' to Restart", 400, 560);
 
         // Mr Clinton Pop-up (10 seconds = 600 frames at 60fps)
         if (winTimer > 600) {
@@ -1123,8 +1225,15 @@ function drawEndScreen() {
         ctx.fillText("GAME OVER", 400, 250);
         ctx.fillStyle = '#fff'; ctx.font = '14px "Press Start 2P"';
         ctx.fillText(battleMsg, 400, 320);
-        ctx.fillText("Press SPACE to restart.", 400, 450);
+        ctx.fillText("Press 'A' to restart.", 400, 450);
     }
+}
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (currentState === STATE.TRANSITION) { drawMapScreen(); const p = 1 - (transitionTimer / 90); const h = (canvas.height / 2) * p; ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, h); ctx.fillRect(0, canvas.height - h, canvas.width, h); if (transitionTimer % 4 < 2) { ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'; ctx.fillRect(0, 0, canvas.width, canvas.height); } return; }
+    if (currentState === STATE.BATTLE) { drawBattle(); return; }
+    if (currentState === STATE.WIN || currentState === STATE.GAMEOVER) { drawEndScreen(); return; }
+    drawMapScreen();
 }
 window.addEventListener('keydown', e => { if ((currentState === STATE.WIN || currentState === STATE.GAMEOVER) && e.key === " ") location.reload(); });
 function loop() { update(); draw(); requestAnimationFrame(loop); }
