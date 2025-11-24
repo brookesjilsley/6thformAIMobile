@@ -285,6 +285,17 @@
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+
+// --- GLOBAL CONSTANTS ---
+const TILE_SIZE = 40;
+const COLS = 20;
+const ROWS = 15;
+const COLORS = { 
+    floor: '#222', wall: '#444', 
+    mediaFloor: '#203020', libraryFloor: '#202040', examFloor: '#302020' 
+};
+
+// --- PIXEL ART SPRITE SYSTEM ---
 const PALETTE = {
     '.': null, 'x': '#000000', 's': '#ffccaa', 'w': '#ffffff', 'r': '#d82020',
     'b': '#2040d8', 'g': '#44aa44', 'y': '#ffee00', 'h': '#663300',
@@ -604,6 +615,37 @@ let keyProcessed = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRi
 window.addEventListener('keydown', e => { if(keys.hasOwnProperty(e.key) || e.key === " ") { keys[e.key] = true; } });
 window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key) || e.key === " ") { keys[e.key] = false; keyProcessed[e.key] = false; } });
 
+// --- DIALOGUE FUNCTIONS (MOVED UP TO FIX REFERENCE ERROR) ---
+let dialogueQueue = []; let dialogueSpeaker = "";
+function startDialogue(npc) {
+    if (player.interactionCooldown > 0) return;
+    playSound('SELECT');
+    dialogueQueue = [...npc.dialogue];
+    if (npc.heal) dialogueQueue.push("[HP RESTORED]");
+    
+    dialogueSpeaker = npc.name;
+    currentState = STATE.DIALOGUE;
+    document.getElementById('dialogue-box').style.display = 'block';
+    document.getElementById('dialogue-name').innerText = dialogueSpeaker;
+    document.getElementById('dialogue-text').innerText = dialogueQueue[0];
+    player.interactionCooldown = 15;
+}
+function advanceDialogue() {
+    dialogueQueue.shift();
+    if (dialogueQueue.length === 0) { currentState = STATE.ROAM; document.getElementById('dialogue-box').style.display = 'none'; player.interactionCooldown = 20; }
+    else { document.getElementById('dialogue-text').innerText = dialogueQueue[0]; player.interactionCooldown = 15; }
+}
+
+// --- MATRIX RAIN (MOVED HERE) ---
+function initMatrixRain() {
+    matrixRain = [];
+    for(let i=0; i<50; i++) {
+        matrixRain.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, speed: Math.random() * 5 + 2, chars: "101010 AI ERROR JCQ" });
+    }
+}
+initMatrixRain();
+
+// --- INPUT AND ROOM LOGIC ---
 function setupMobileControls() {
     const btnUp = document.getElementById('btn-up');
     const btnDown = document.getElementById('btn-down');
@@ -626,7 +668,6 @@ function setupMobileControls() {
     }
 }
 setupMobileControls();
-initMatrixRain();
 
 function switchRoom(roomKey, startX, startY) {
     if (!MAP_LAYOUTS[roomKey]) { console.error("INVALID ROOM KEY:", roomKey); return false; }
@@ -727,13 +768,365 @@ function update() {
     if (currentState === STATE.DIALOGUE) { if (keys[" "] && !keyProcessed[" "] && player.interactionCooldown === 0) { keyProcessed[" "] = true; advanceDialogue(); } if (player.interactionCooldown > 0) player.interactionCooldown--; }
     if (currentState === STATE.BATTLE) updateBattle();
 }
+
+function startBattle(type, index) {
+    playEncounterSfx(); // Play encounter alarm!
+    currentState = STATE.TRANSITION; // Wipe effect first
+    transitionTimer = 90; // frames (increased for longer siren)
+    battleState = 'MENU';
+    battleTurn = 'PLAYER';
+    battleMenuIdx = 0;
+    initMatrixRain();
+    player.interactionCooldown = 20;
+    if (type === 'minion') {
+        activeBattleEnemy = { type: 'minion', name: 'MINOR BUG', hp: 50, maxHp: 50, spriteKey: 'bug', minionIndex: index, lvl: 5 };
+        battleMsg = "A wild BUG appeared!";
+    } else {
+        activeBattleEnemy = { type: 'boss', name: 'THE GLITCH', hp: 200, maxHp: 200, spriteKey: 'glitch', minionIndex: -1, lvl: 50 };
+        battleMsg = "THE GLITCH wants to battle!";
+    }
+}
+function updateBattle() {
+    if (battleShake > 0) battleShake *= 0.9; if (battleShake < 0.5) battleShake = 0;
+    for (let i = battleEffects.length - 1; i >= 0; i--) {
+        let p = battleEffects[i]; p.x += p.vx; p.y += p.vy; p.life--;
+        if (p.life <= 0) battleEffects.splice(i, 1);
+    }
+    
+    if (battleState === 'FAINT_ANIM') {
+       return; 
+    }
+    if (battleState === 'MENU') {
+        if (player.interactionCooldown > 0) player.interactionCooldown--;
+        // Use keyProcessed check for menu navigation to prevent rapid firing
+        if (keys.ArrowUp && !keyProcessed.ArrowUp && player.interactionCooldown === 0) { 
+            keyProcessed.ArrowUp = true;
+            battleMenuIdx = Math.max(0, battleMenuIdx - 1); 
+            player.interactionCooldown = 5; 
+            playSound('SELECT'); 
+        }
+        if (keys.ArrowDown && !keyProcessed.ArrowDown && player.interactionCooldown === 0) { 
+            keyProcessed.ArrowDown = true;
+            battleMenuIdx = Math.min(2, battleMenuIdx + 1); 
+            player.interactionCooldown = 5; 
+            playSound('SELECT'); 
+        }
+        if (keys[" "] && !keyProcessed[" "] && player.interactionCooldown === 0) { 
+            keyProcessed[" "] = true;
+            player.interactionCooldown = 20; 
+            selectBattleAction(battleMenuIdx); 
+        }
+    } else if (battleState === 'QUESTION') {
+        if (player.interactionCooldown > 0) player.interactionCooldown--;
+        if (keys.ArrowUp && !keyProcessed.ArrowUp && player.interactionCooldown === 0) { 
+            keyProcessed.ArrowUp = true;
+            selectedOptionIdx = Math.max(0, selectedOptionIdx - 1); 
+            player.interactionCooldown = 5; 
+            playSound('SELECT'); 
+        }
+        if (keys.ArrowDown && !keyProcessed.ArrowDown && player.interactionCooldown === 0) { 
+            keyProcessed.ArrowDown = true;
+            selectedOptionIdx = Math.min(2, selectedOptionIdx + 1); 
+            player.interactionCooldown = 5; 
+            playSound('SELECT'); 
+        }
+        if (keys[" "] && !keyProcessed[" "] && player.interactionCooldown === 0) { 
+            keyProcessed[" "] = true;
+            player.interactionCooldown = 20; 
+            checkAnswer(); 
+        }
+    }
+    
+    if (battleState === 'VICTORY_WAIT') {
+        if (keys[" "] && !keyProcessed[" "] && player.interactionCooldown === 0) {
+             keyProcessed[" "] = true;
+             player.hp = Math.min(player.maxHp, player.hp + 10); 
+             if (activeBattleEnemy.type === 'minion') {
+                activeMinions[activeBattleEnemy.minionIndex].active = false;
+                currentState = STATE.ROAM; 
+                player.interactionCooldown = 30; 
+                // Only play chapel music if in chapel, otherwise return to roam
+                if (player.currentRoom === 'CHAPEL') playMusic('CHAPEL');
+                else playMusic('ROAM');
+            } else winGame();
+        }
+        if (player.interactionCooldown > 0) player.interactionCooldown--;
+    }
+}
+function selectBattleAction(idx) {
+    if (idx === 1) { 
+        pendingAction = 'AI'; 
+        battleMsg = "Used AI Shortcut..."; 
+        battleState = 'BUSY'; // LOCK INPUT
+        setTimeout(executeAction, 1000); 
+    } else if (idx === 2) { // RUN
+        battleMsg = "Got away safely!";
+        battleState = 'BUSY';
+        setTimeout(() => {
+             currentState = STATE.ROAM;
+             player.interactionCooldown = 30;
+             // Only play chapel music if in chapel, otherwise return to roam
+             if (player.currentRoom === 'CHAPEL') playMusic('CHAPEL');
+             else playMusic('ROAM');
+        }, 1000);
+    } else {
+        // idx 0 (QUESTION)
+        pendingAction = 'DRAFT';
+        currentQuestion = getNextQuestion(); // Use the pool system instead of raw random
+        selectedOptionIdx = 0;
+        battleState = 'QUESTION';
+    }
+}
+function checkAnswer() {
+    const isCorrect = selectedOptionIdx === currentQuestion.correct;
+    if (isCorrect) { 
+        battleMsg = "It's super effective!"; 
+        playSound('CORRECT'); 
+        battleState = 'BUSY'; // LOCK INPUT
+        setTimeout(executeAction, 1000); 
+    } else {
+        battleMsg = "It wasn't very effective..."; 
+        playSound('WRONG');
+        battleState = 'ANIMATION';
+        setTimeout(() => {
+            player.hp -= 20; battleShake = 20;
+            battleEffects.push({x: 150, y: 300, vx:0, vy:-2, life:60, type:'text', text:'-20', color:'#f44'});
+            if(player.hp <= 0) loseGame("You blacked out!"); else endPlayerTurn();
+        }, 1000);
+    }
+}
+function executeAction() {
+    battleState = 'ANIMATION';
+    let dmg = 0;
+    if (pendingAction === 'DRAFT') {
+        dmg = 30 + Math.floor(Math.random()*10);
+        battleMsg = "Player used CRITICAL THINKING!";
+        battleEffects.push({x: 200, y: 350, targetX: 550, targetY: 150, vx: 10, vy: -5, life: 40, type: 'projectile', icon: ' 📄 '});
+        setTimeout(() => hitEnemy(dmg), 500);
+    } else if (pendingAction === 'AI') {
+        dmg = 60; player.auth -= 30;
+        battleMsg = "INCORRECT INFO! AI HALLUCINATED!";
+        battleEffects.push({x: 200, y: 350, targetX: 550, targetY: 150, vx: 10, vy: -5, life: 40, type: 'projectile', icon: ' 🤖 '});
+        setTimeout(() => {
+             player.hp -= 10;
+             battleEffects.push({x: 150, y: 300, vx:0, vy:-2, life:60, type:'text', text:'-10', color:'#f44'});
+             hitEnemy(dmg);
+        }, 500);
+    }
+}
+function hitEnemy(dmg) {
+    activeBattleEnemy.hp -= dmg;
+    battleEffects.push({x: 550, y: 100, vx:0, vy:-2, life:60, type:'text', text:dmg, color:'#fff'});
+    battleShake = 10; playSound('HIT');
+    
+    if (activeBattleEnemy.hp <= 0) {
+        playEnemyDownSfx(); 
+        battleState = 'FAINT_ANIM';
+        setTimeout(() => {
+            stopAllMusic(); // Stop battle music
+            playVictoryFanfare(); // Celebration fanfare
+            battleMsg = `${activeBattleEnemy.name} was destroyed!`;
+            // Start victory music after fanfare finishes
+            setTimeout(() => {
+                playMusic('WIN'); // Start victory music loop
+            }, 1200); // Wait for fanfare to play
+            setTimeout(() => {
+                battleMsg = "You gained 50 EXP & HP!";
+                playSound('CORRECT');
+                battleState = 'VICTORY_WAIT';
+                player.interactionCooldown = 20;
+            }, 1500);
+        }, 1000);
+    } else if (player.auth <= 0) loseGame("Disqualified for Malpractice!");
+    else setTimeout(endPlayerTurn, 1000);
+}
+function endPlayerTurn() {
+    battleState = 'ENEMY_TURN';
+    battleMsg = `${activeBattleEnemy.name} used HALLUCINATION!`;
+    setTimeout(enemyAttack, 1500);
+}
+function enemyAttack() {
+    let dmg = 10 + Math.floor(Math.random()*10);
+    if (activeBattleEnemy.type === 'minion') dmg = 5;
+    battleEffects.push({x: 550, y: 150, targetX: 200, targetY: 350, vx: -10, vy: 5, life: 40, type: 'projectile', spriteKey: 'bug'});
+    setTimeout(() => {
+        player.hp -= dmg; playSound('HIT');
+        battleEffects.push({x: 150, y: 300, vx:0, vy:-2, life:60, type:'text', text:`-${dmg}`, color:'#f44'});
+        battleShake = 10;
+        if (player.hp <= 0) loseGame("You blacked out!");
+        else { battleState = 'MENU'; battleMsg = "What will PLAYER do?"; player.interactionCooldown = 10; }
+    }, 500);
+}
+function winGame() { 
+    // Mark boss as defeated in the map data (not just local reference)
+    if (MAP_LAYOUTS['OFFICE'].boss) {
+        MAP_LAYOUTS['OFFICE'].boss.active = false;
+    }
+    if (activeBoss) {
+        activeBoss.active = false;
+    }
+    currentState = STATE.WIN; 
+    winTimer = 0; // Reset timer
+    playMusic('WIN'); 
+}
+function loseGame(reason) { currentState = STATE.GAMEOVER; battleMsg = reason; playMusic('NONE'); }
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (currentState === STATE.TRANSITION) { drawMapScreen(); const p = 1 - (transitionTimer / 90); const h = (canvas.height / 2) * p; ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, h); ctx.fillRect(0, canvas.height - h, canvas.width, h); if (transitionTimer % 4 < 2) { ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'; ctx.fillRect(0, 0, canvas.width, canvas.height); } return; }
+    
+    if (currentState === STATE.TRANSITION) {
+        drawMapScreen();
+        const p = 1 - (transitionTimer / 90); 
+        const shutterHeight = (canvas.height / 2) * p;
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, shutterHeight); 
+        ctx.fillRect(0, canvas.height - shutterHeight, canvas.width, shutterHeight); 
+        if (transitionTimer % 4 < 2) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        return;
+    }
     if (currentState === STATE.BATTLE) { drawBattle(); return; }
     if (currentState === STATE.WIN || currentState === STATE.GAMEOVER) { drawEndScreen(); return; }
     drawMapScreen();
 }
+function drawMapScreen() {
+    ctx.fillStyle = activeRoom.color || COLORS.floor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    for (let y = 0; y < ROWS; y++) {
+        for (let x = 0; x < COLS; x++) {
+            const tile = activeMap[y][x];
+            if (tile === 1) {
+                ctx.fillStyle = COLORS.wall;
+                ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                ctx.strokeStyle = '#222';
+                ctx.strokeRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            } else if (tile === 2) { // Door
+                drawSprite(ctx, 'door', x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, true);
+            } else if (tile === 3) { // Table
+                drawSprite(ctx, 'table', x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, true);
+            } else if (tile === 4) { // Chair
+                drawSprite(ctx, 'chair', x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, true);
+            } else if (tile === 5) { // Plant
+                drawSprite(ctx, 'plant', x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, true);
+            } else if (tile === 6) { // Altar/Counter
+                drawSprite(ctx, 'table', x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, true);
+            }
+        }
+    }
+    ctx.textAlign = 'center';
+    
+    // Draw Crowd
+    activeCrowd.forEach(c => {
+         const drawX = (c.pixelX !== undefined) ? c.pixelX : c.gridX * TILE_SIZE;
+         const drawY = (c.pixelY !== undefined) ? c.pixelY : c.gridY * TILE_SIZE;
+         const bob = c.isMoving ? (frames / 5) : 0; 
+         drawSprite(ctx, c.spriteKey, drawX, drawY, TILE_SIZE, c.facingRight, bob);
+    });
+    activeMinions.forEach(m => { 
+        if(m.active) drawSprite(ctx, m.spriteKey, m.gridX * TILE_SIZE, m.gridY * TILE_SIZE, TILE_SIZE, true); 
+    });
+    
+    activeNPCs.forEach(npc => {
+        const drawX = (npc.pixelX !== undefined) ? npc.pixelX : npc.gridX * TILE_SIZE;
+        const drawY = (npc.pixelY !== undefined) ? npc.pixelY : npc.gridY * TILE_SIZE;
+        const bob = npc.isMoving ? (frames / 5) : 0; 
+        
+        drawSprite(ctx, npc.spriteKey, drawX, drawY, TILE_SIZE, false, bob);
+        
+        if (npc.id === 'grant_final' && activeBoss && !activeBoss.active) {
+           drawSprite(ctx, 'alert', npc.gridX * TILE_SIZE, (npc.gridY - 1) * TILE_SIZE, TILE_SIZE, false);
+        }
+    });
+    if (activeBoss && activeBoss.active) { 
+        drawSprite(ctx, activeBoss.spriteKey, activeBoss.gridX * TILE_SIZE, activeBoss.gridY * TILE_SIZE, 50, false); 
+    }
+    drawSprite(ctx, player.spriteKey, player.x, player.y, TILE_SIZE, player.facingRight, player.isMoving ? player.bobFrame : 0);
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.font = '12px "Press Start 2P"';
+    ctx.fillText(`HP: ${player.hp}`, 10, 20); 
+}
+function drawHealthBox(x, y, name, lvl, hp, maxHp, showNumbers) {
+    // Box Body
+    ctx.fillStyle = '#fff'; ctx.strokeStyle='#000'; ctx.lineWidth=3;
+    ctx.fillRect(x, y, 300, 80); ctx.strokeRect(x, y, 300, 80);
+    
+    // Text
+    ctx.fillStyle = '#000'; ctx.font = '14px "Press Start 2P"'; ctx.textAlign = 'left';
+    ctx.fillText(name, x + 10, y + 30);
+    ctx.fillText("Lv" + lvl, x + 220, y + 30);
+    // HP Bar
+    ctx.fillStyle = '#555'; ctx.fillRect(x + 60, y + 45, 200, 15); // Back
+    const pct = Math.max(0, hp / maxHp);
+    ctx.fillStyle = pct > 0.5 ? '#4f4' : (pct > 0.2 ? '#fd0' : '#f44');
+    ctx.fillRect(x + 60, y + 45, 200 * pct, 15); // Front
+    
+    ctx.fillStyle = '#000'; ctx.font = '10px "Press Start 2P"'; ctx.fillText("HP", x + 30, y + 57);
+    
+    if (showNumbers) {
+        ctx.fillText(`${Math.floor(hp)}/ ${maxHp}`, x + 150, y + 70);
+    }
+}
+function drawEndScreen() {
+    ctx.fillStyle = currentState === STATE.WIN ? '#000' : '#200'; ctx.fillRect(0,0,800,600);
+    ctx.textAlign = 'center'; 
+    
+    if (currentState === STATE.WIN) {
+        ctx.font = '30px "Press Start 2P"';
+        ctx.fillStyle = '#44ff44';
+        ctx.fillText("INTEGRITY RESTORED!", 400, 60);
+
+        ctx.font = '14px "Press Start 2P"';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText("Great job! You have purged the glitches.", 400, 110);
+        
+        ctx.fillStyle = '#f0db4f';
+        ctx.fillText("REMEMBER THE AI CODE:", 400, 160);
+        
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText("1. AUTHENTICITY: Your work must be your own.", 80, 210);
+        ctx.fillText("2. TRANSPARENCY: Reference AI tools used.", 80, 250);
+        ctx.fillText("3. VERIFICATION: Check AI facts.", 80, 290);
+        ctx.fillText("4. CONSEQUENCES: Misuse = Disqualification.", 80, 330);
+        
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#cccccc';
+        ctx.fillText("Use AI as a tool, not a replacement.", 400, 380); 
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText("Press SPACE to Restart", 400, 560);
+
+        // Mr Clinton Pop-up (10 seconds = 600 frames at 60fps)
+        if (winTimer > 600) {
+            // Draw Box
+            ctx.fillStyle = '#333';
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 4;
+            ctx.fillRect(150, 420, 500, 100);
+            ctx.strokeRect(150, 420, 500, 100);
+            
+            // Draw Clinton
+            drawSprite(ctx, 'clinton', 170, 440, 60, false);
+            
+            // Draw Text
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'left';
+            ctx.font = '12px "Press Start 2P"';
+            ctx.fillText("Mr Clinton:", 250, 450);
+            wrapText(ctx, "\"You did a really really brilliant job!\"", 250, 480, 380, 20);
+        }
+
+    } else {
+        ctx.fillStyle = '#f44';
+        ctx.font = '30px "Press Start 2P"';
+        ctx.fillText("GAME OVER", 400, 250);
+        ctx.fillStyle = '#fff'; ctx.font = '14px "Press Start 2P"';
+        ctx.fillText(battleMsg, 400, 320);
+        ctx.fillText("Press SPACE to restart.", 400, 450);
+    }
+}
+window.addEventListener('keydown', e => { if ((currentState === STATE.WIN || currentState === STATE.GAMEOVER) && e.key === " ") location.reload(); });
 function loop() { update(); draw(); requestAnimationFrame(loop); }
 loop();
 </script>
