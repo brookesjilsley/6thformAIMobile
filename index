@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- Crucial Meta Tag: Prevents zooming and ensures correct scaling on phones -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ABI 6TH FORM: THE GAME</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
@@ -24,10 +23,10 @@
             margin: 0;
             height: 100vh;
             width: 100vw;
-            overflow: hidden; /* Stops scrolling */
+            overflow: hidden;
             user-select: none;
-            -webkit-user-select: none; /* Crucial for iOS */
-            touch-action: none; /* Stops browser handling gestures */
+            -webkit-user-select: none;
+            touch-action: none;
             display: flex;
             flex-direction: column;
         }
@@ -55,7 +54,7 @@
             aspect-ratio: 4/3;
             width: 100%;
             max-height: 100%;
-            max-width: 100vh; /* Landscape constraints */
+            max-width: 100vh;
             background-color: var(--bg-color);
             border: 2px solid #333;
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
@@ -69,7 +68,6 @@
             image-rendering: pixelated;
         }
 
-        /* CONTROLS AREA */
         #mobile-controls {
             height: auto;
             min-height: 220px;
@@ -85,7 +83,6 @@
             padding-bottom: env(safe-area-inset-bottom);
         }
 
-        /* Adjust controls for landscape vs portrait */
         @media (orientation: landscape) and (max-height: 500px) {
             #mobile-controls {
                 position: absolute;
@@ -93,7 +90,7 @@
                 width: 100%;
                 background: transparent;
                 border: none;
-                pointer-events: none; /* Let touches pass through except on buttons */
+                pointer-events: none;
                 min-height: 0;
                 padding-bottom: 20px;
             }
@@ -130,7 +127,6 @@
             cursor: pointer;
             touch-action: none;
         }
-        /* When class 'active' is added by JS */
         .dpad-btn.active {
             background: #666;
             transform: translateY(4px);
@@ -171,7 +167,6 @@
             box-shadow: 0 0 0 #500;
         }
 
-        /* INTRO & UI */
         #intro-screen {
             position: absolute;
             top:0; left:0; width:100%; height:100%;
@@ -315,7 +310,8 @@ const COLS = 20;
 const ROWS = 15;
 const COLORS = { 
     floor: '#222', wall: '#444', 
-    mediaFloor: '#203020', libraryFloor: '#202040', examFloor: '#302020' 
+    mediaFloor: '#203020', libraryFloor: '#202040', examFloor: '#302020',
+    astroFloor: '#38761d'
 };
 
 // --- PIXEL ART SPRITE SYSTEM ---
@@ -340,8 +336,16 @@ const SPRITE_DATA = {
     mckeown: ["....xxxxxx......", "...xhhhhhhx.....", "..xhhhhhhhhx....", "..xhssxxsshx....","..xhsxwwxshx....", "..xhsssssshx....", "....xxxxxx......", "...xppppppx.....","..xppppppppx....", ".xppwwwwwwppx...", ".xppwwwwwwppx...", ".xppppppppppx...","..xccccccccx....", "..xccccccccx....", "...xx....xx.....", "...xx....xx....."],
     clinton: ["....xxxxxx......", "...xhhhhhhx.....", "..xhhhhhhhhx....", "..xhssxxsshx....","..xhs.xx.shx....", "..xhsssssshx....", "....xxxxxx......", "...xddddddx.....","..xddddddddx....", ".xddddddddddx...", ".xddwwwwwdddx...", ".xddddddddddx...","..xddddddddx....", "..xddddddddx....", "...xx....xx.....", "...xx....xx....."],
     mcdonald: ["....xxxxxx......", "...xhhhhhhx.....", "..xhhhhhhhhx....", "..xhssxxsshx....","..xhs.xx.shx....", "..xhsssssshx....", "....xxxxxx......", "...xyyyyyyx.....","..xyyyyyyyyx....", ".xyywwwwwwyyx...", ".xyywwwwwwyyx...", ".xyyyyyyyyyyx...","..xccccccccx....", "..xccccccccx....", "...xx....xx.....", "...xx....xx....."],
-    lakin: ["....xxxxxx......", "...xhhhhhhx.....", "..xhhhhhhhhx....", "..xhssxxsshx....","..xhs.xx.shx....", "..xhsssssshx....", "....xxxxxx......", "...xbbbbbbx.....","..xbbbbbbbbx....", ".xbbwwwwwwbbx...", ".xbbwwwwwwbbx...", ".xbbbbbbbbbbx...","..xccccccccx....", "..xccccccccx....", "...xx....xx.....", "...xx....xx....."],
+    lakin: ["....xxxxxx......", "...xhhhhhhx.....", "..xhhhhhhhhx....", "..xhssxxsshx....","..xhs.xx.shx....", "..xhsssssshx....", "....xxxxxx......", "...xddddddx.....","..xddddddddx....", ".xddwwwwwwddx...", ".xddwwwwwwddx...", ".xddddddddddx...","..xccccccccx....", "..xccccccccx....", "...xx....xx.....", "...xx....xx....."],
+    hemmings: ["....xxxxxx......", "...xhhhhhhx.....", "..xhhhhhhhhx....", "..xhssxxsshx....","..xhs.xx.shx....", "..xhsssssshx....", "....xxxxxx......", "...xDDDDDDx.....","..xDDDDDDDDx....", ".xDDwwwwwwDDx...", ".xDDwwwwwwDDx...", ".xDDDDDDDDDDx...","..xccccccccx....", "..xccccccccx....", "...xx....xx.....", "...xx....xx....."],
+    pearson: ["....xxxxxx......", "...xhhhhhhx.....", "..xhhhhhhhhx....", "..xhssxxsshx....","..xhs.xx.shx....", "..xhsssssshx....", "....xxxxxx......", "...xppppppx.....","..xppppppppx....", ".xppwwwwwwppx...", ".xppwwwwwwppx...", ".xppppppppppx...","..xccccccccx....", "..xccccccccx....", "...xx....xx.....", "...xx....xx....."],
+    patel: ["....xxxxxx......", "...xhhhhhhx.....", "..xhhhhhhhhx....", "..xhssxxsshx....","..xhs.xx.shx....", "..xhsssssshx....", "....xxxxxx......", "...xOOOOOOx.....","..xOOOOOOOOx....", ".xOOwwwwwwOOx...", ".xOOwwwwwwOOx...", ".xOOOOOOOOOOx...","..xccccccccx....", "..xccccccccx....", "...xx....xx.....", "...xx....xx....."],
+    herron: ["....xxxxxx......", "...xhhhhhhx.....", "..xhhhhhhhhx....", "..xhssxxsshx....","..xhs.xx.shx....", "..xhsssssshx....", "....xxxxxx......", "...xyyyyyyx.....","..xyyyyyyyyx....", ".xyywwwwwwyyx...", ".xyywwwwwwyyx...", ".xyyyyyyyyyyx...","..xccccccccx....", "..xccccccccx....", "...xx....xx.....", "...xx....xx....."],
+    rose: ["....xxxxxx......", "...xhhhhhhx.....", "..xhhhhhhhhx....", "..xhssxxsshx....","..xhs.xx.shx....", "..xhsssssshx....", "....xxxxxx......", "...xrrrrrrx.....","..xrrrrrrrrx....", ".xrrwwwwwwrrx...", ".xrrwwwwwwrrx...", ".xrrrrrrrrrrx...","..xccccccccx....", "..xccccccccx....", "...xx....xx.....", "...xx....xx....."],
     student: ["....xxxxxx......", "...xhhhhhhx.....", "..xhhhhhhhhx....", "..xhssxxsshx....","..xhs.xx.shx....", "..xhsssssshx....", "....xxxxxx......", "...xbbbbbbx.....","..xbbbbbbbbx....", ".xbbwwwwwwbbx...", ".xbbwwwwwwbbx...", ".xbbbbbbbbbbx...","..xccccccccx....", "..xccccccccx....", "...xx....xx.....", "...xx....xx....."],
+    student_kneeling: ["................", "................", "....xxxxxx......", "...xhhhhhhx.....","..xhhhhhhhhx....", "..xhsssssshx....", "..xhsssssshx....", "..xhsssssshx....","....xxxxxx......", "...xbbbbbbx.....", "..xbbbbbbbbx....", ".xbbwwwwwwbbx...","..xbbwwwwwwbbx..", "..xbbbbbbbbbbx..", "...xccccccccx...", "...xccccccccx..."],
+    ball: ["................", "................", "................", "................","................", "................", "................", "................","......xxxx......", "....xxwwwwxx....", "...xwwxwwxwwx...","...xwxxxxxxwx...", "...xwwxwwxwwx...", "....xxwwwwxx....", "......xxxx......", "................"],
+    computer: ["................", "................", "...xxxxxxxxxx...", "...x.bbbbbb.x...","...x.bbbbbb.x...", "...x.bbbbbb.x...", "...xxxxxxxxxx...", "......xxxx......","...xxxxxxxxxx...", "...xxxxxxxxxx...", "................", "................","................", "................", "................", "................"],
     glitch: ["....mmmmmm......", "...mm.mm.mm.....", "..mmmmmmmmmm....", "..m.m.mm.m.m....","..mmmmmmmmmm....", "..m.mmmmmm.m....", "....mmmmmm......", "...mxmxmxmx.....","..mxmxmxmxmx....", ".xmxmxmxmxmxm...", ".mxmxmxmxmxmx...", ".xmxmxmxmxmxm...","..xmxmxmxmx.....", "..mxmxmxmxm.....", "...m......m.....", "...m......m....."],
     bug: ["................", "................", "................", "................","......mm........", "....mmmmmm......", "...mmxmmxmm.....", "...mmmmmmmm.....","....mmmmmm......", "....m....m......", "....m....m......", "................","................", "................", "................", "................"],
     door: ["xxxxx......xxxxx", "xDDDx......xDDDx", "xDDDx......xDDDx", "xDDDx......xDDDx","xDDDx......xDDDx", "xDDDx......xDDDx", "xDDDx......xDDDx", "xDDDx......xDDDx","xDDDx......xDDDx", "xDDDx......xDDDx", "xDDDx......xDDDx", "xDDDx......xDDDx","xDDDx......xDDDx", "xDDDx......xDDDx", "xDDDx......xDDDx", "xDDDx......xDDDx"],
@@ -449,8 +453,8 @@ function initTownMusic() {
   townSynth.volume.value = -10; 
   townBass = new Tone.PolySynth(Tone.Synth, {oscillator:{type:"square"},envelope:{attack:0.05,decay:0.2,sustain:0.5,release:0.5}}).toDestination(); 
   townBass.volume.value = -8;
-  townMelodySeq = new Tone.Sequence((t, n) => n && townSynth.triggerAttackRelease(n, "8n", t), ["C5", null, "E5", "G5", "A5", "G5", "E5", "C5", "D5", null, "F5", "A5", "G5", "F5", "D5", "B4"], "8n");
-  townBassSeq = new Tone.Sequence((t, n) => n && townBass.triggerAttackRelease(n, "8n", t), ["C3", null, "C3", null, "F3", null, "F3", null, "G3", null, "G3", null, "C3", null, "C3", null], "4n");
+  townMelodySeq = new Tone.Sequence((t, n) => { if (n) townSynth.triggerAttackRelease(n, "8n", t); }, ["C5", null, "E5", "G5", "A5", "G5", "E5", "C5", "D5", null, "F5", "A5", "G5", "F5", "D5", "B4"], "8n");
+  townBassSeq = new Tone.Sequence((t, n) => { if (n) townBass.triggerAttackRelease(n, "8n", t); }, ["C3", null, "C3", null, "F3", null, "F3", null, "G3", null, "G3", null, "C3", null, "C3", null], "4n");
   townMelodySeq.loop = true; townBassSeq.loop = true; townInit = true;
 }
 function initChapelMusic() {
@@ -466,8 +470,8 @@ function initVictoryMusic() {
     victoryMusicSynth.volume.value = -10;
     victoryMusicBass = new Tone.PolySynth(Tone.Synth, {oscillator:{type:"square"},envelope:{attack:0.05,decay:0.2,sustain:0.5,release:0.5}}).toDestination(); 
     victoryMusicBass.volume.value = -8;
-    victoryMelodySeq = new Tone.Sequence((t, n) => n && victoryMusicSynth.triggerAttackRelease(n, "8n", t), ["C5", "E5", "G5", "C6", "G5", "E5", "C5", "E5", "D5", "F5", "A5", "D6", "A5", "F5", "D5", "F5", "E5", "G5", "C6", "E6", "C6", "G5", "E5", "G5", "C5", "E5", "G5", "C6", null, null, null, null], "8n");
-    victoryBassSeq = new Tone.Sequence((t, n) => n && victoryMusicBass.triggerAttackRelease(n, "8n", t), ["C3", "C3", "C3", "C3", "F3", "F3", "F3", "F3", "G3", "G3", "G3", "G3", "C3", "C3", "C3", "C3"], "4n");
+    victoryMelodySeq = new Tone.Sequence((t, n) => { if (n) victoryMusicSynth.triggerAttackRelease(n, "8n", t); }, ["C5", "E5", "G5", "C6", "G5", "E5", "C5", "E5", "D5", "F5", "A5", "D6", "A5", "F5", "D5", "F5", "E5", "G5", "C6", "E6", "C6", "G5", "E5", "G5", "C5", "E5", "G5", "C6", null, null, null, null], "8n");
+    victoryBassSeq = new Tone.Sequence((t, n) => { if (n) victoryMusicBass.triggerAttackRelease(n, "8n", t); }, ["C3", "C3", "C3", "C3", "F3", "F3", "F3", "F3", "G3", "G3", "G3", "G3", "C3", "C3", "C3", "C3"], "4n");
     victoryMelodySeq.loop = true; victoryBassSeq.loop = true; victoryMusicInit = true;
 }
 function initBattleMusic() {
@@ -479,10 +483,10 @@ function initBattleMusic() {
   battleBass.volume.value = -8;
   battleKick = new Tone.MembraneSynth().toDestination(); battleKick.volume.value = -6;
   battleNoise = new Tone.NoiseSynth({noise:{type:"white"},envelope:{attack:0.001,decay:0.12,sustain:0}}).toDestination(); battleNoise.volume.value = -12;
-  battleBassSeq = new Tone.Sequence((t, n) => n && battleBass.triggerAttackRelease(n, "8n", t), ["C2", "C2", "C2", "C2", "Ab1", "Ab1", "Ab1", "Ab1", "Bb1", "Bb1", "Bb1", "Bb1", "G1", "G1", "G1", "G1"], "8n");
+  battleBassSeq = new Tone.Sequence((t, n) => { if (n) battleBass.triggerAttackRelease(n, "8n", t); }, ["C2", "C2", "C2", "C2", "Ab1", "Ab1", "Ab1", "Ab1", "Bb1", "Bb1", "Bb1", "Bb1", "G1", "G1", "G1", "G1"], "8n");
   const leadA = ["C5", null, "Eb5", null, "G5", null, "F5", null, "Eb5", null, "D5", null, "C5", null, null, null];
   const leadB = ["G5", null, "F5", null, "Eb5", null, "C5", null, "Bb4", null, "C5", null, "D5", null, null, null];
-  battleLeadSeq = new Tone.Sequence((t, n) => n && battleLead.triggerAttackRelease(n, "16n", t), [...leadA,...leadA,...leadB,...leadA], "16n");
+  battleLeadSeq = new Tone.Sequence((t, n) => { if (n) battleLead.triggerAttackRelease(n, "16n", t); }, [...leadA,...leadA,...leadB,...leadA], "16n");
   battleDrumSeq = new Tone.Sequence((t, h) => { if (h === "K") battleKick.triggerAttackRelease("C1", "16n", t); }, ["K", null, null, null, "K", null, null, null, "K", null, null, null, "K", null, null, null], "16n");
   battleBassSeq.loop = true; battleLeadSeq.loop = true; battleDrumSeq.loop = true; battleInit = true;
 }
@@ -522,9 +526,9 @@ const MAP_LAYOUTS = {
         name: "COMMON ROOM (HUB)", color: '#333344',
         data: [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,5,0,0,0,0,0,4,3,3,4,0,0,0,0,0,0,0,5,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,4,3,4,0,0,0,0,0,0,0,4,3,4,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,4,3,3,4,0,0,4,3,3,4,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,4,3,4,0,0,0,0,0,0,0,4,3,4,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]],
         npcs: [
-            { id: 'mcmahon_intro', name: 'Mrs McMahon', role: 'Teacher', spriteKey: 'oneill', color: '#5555ff', gridX: 10, gridY: 3, dialogue: ["Improper use of AI is sweeping Archbishop Ilsley.", "The bugs have locked Mrs Grant in her office with a Glitch.", "You need to help the school by destroying three bugs to unlock her office then fight the Glitch.", "Good Luck."] },
+            { id: 'mcmahon_intro', name: 'Mrs McMahon', role: 'Teacher', spriteKey: 'mcmahon', color: '#5555ff', gridX: 10, gridY: 3, dialogue: ["Improper use of AI is sweeping Archbishop Ilsley.", "The bugs have locked Mrs Grant in her office with a Glitch.", "You need to help the school by destroying three bugs to unlock her office then fight the Glitch.", "Good Luck."] },
             { id: 'clinton', name: 'Mr Clinton', role: 'Head Teacher', spriteKey: 'clinton', color: '#333333', gridX: 5, gridY: 5, dialogue: ["I am Mr Clinton, the head teacher.", "We have some bugs."] },
-            { id: 'oneill_strict_cr', name: 'Mrs O\'Neill', role: 'Head of Behaviour', spriteKey: 'oneill_strict', color: '#ff0000', gridX: 15, gridY: 8, dialogue: [], autoInteract: true, damage: 10, messages: ["You are being too loud!", "I told you to get to lesson!"] },
+            { id: 'oneill_strict_cr', name: 'Mrs O\'Neill', role: 'Head of Behaviour', spriteKey: 'oneill_strict', color: '#ff0000', gridX: 15, gridY: 8, dialogue: [], autoInteract: true, damage: 10, messages: ["You are being too loud!", "I told you to get to lesson!", "This isn't a doss house!"] },
             { id: 'brookes', name: 'Mr Brookes', role: 'Media & Film', spriteKey: 'brookes', color: '#44aa44', gridX: 2, gridY: 5, dialogue: ["*SIGH* I told them we needed more AI and Media Literacy training...", "But would they listen... No!", "Anyways, you might want to avoid Ms O'Neill.", "If you need some health points, visit the canteen or chapel."] }
         ],
         minions: [],
@@ -533,80 +537,178 @@ const MAP_LAYOUTS = {
     },
     'CORRIDOR': {
         name: "MAIN CORRIDOR", color: '#222222',
-        data: [[1,1,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]],
+        data: [[1,1,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]],
         npcs: [
             { id: 'botwright', name: 'Mr Botwright', role: 'Tutor', spriteKey: 'botwright', color: '#5555ff', gridX: 12, gridY: 8, dialogue: ["Lots of kids in the corridor today, they must be looking for the glitch!"] },
-            { id: 'oneill_strict', name: 'Mrs O\'Neill', role: 'Head of Behaviour', spriteKey: 'oneill_strict', color: '#ff0000', gridX: 5, gridY: 6, dialogue: [], autoInteract: true, damage: 10, messages: ["You are being too loud!", "I told you to get to lesson!"] },
+            { id: 'oneill_strict', name: 'Mrs O\'Neill', role: 'Head of Behaviour', spriteKey: 'oneill_strict', color: '#ff0000', gridX: 5, gridY: 6, dialogue: [], autoInteract: true, damage: 10, messages: ["You are being too loud!", "I told you to get to lesson!", "This isn't a doss house!"] },
             { id: 'foley', name: 'Mr Foley', role: 'Teacher', spriteKey: 'clinton', color: '#00aaaa', gridX: 8, gridY: 4, dialogue: ["Come on now, walk with purpose, every minute matters!"] }
         ],
         minions: [],
-        doors: [{ x: 9, y: 0, target: 'COMMON_ROOM', targetX: 9, targetY: 12 }, { x: 10, y: 0, target: 'COMMON_ROOM', targetX: 10, targetY: 12 }, { x: 19, y: 3, target: 'CANTEEN', targetX: 2, targetY: 7 }, { x: 0, y: 5, target: 'CHAPEL', targetX: 18, targetY: 7 }, { x: 9, y: 13, target: 'CLASSROOM_HALL', targetX: 9, targetY: 1 }, { x: 10, y: 13, target: 'CLASSROOM_HALL', targetX: 10, targetY: 1 }],
+        doors: [{ x: 9, y: 0, target: 'COMMON_ROOM', targetX: 9, targetY: 12 }, { x: 10, y: 0, target: 'COMMON_ROOM', targetX: 10, targetY: 12 }, { x: 19, y: 3, target: 'CANTEEN', targetX: 2, targetY: 7 }, { x: 0, y: 5, target: 'CHAPEL', targetX: 18, targetY: 7 }, { x: 0, y: 9, target: 'MAIN_OFFICE', targetX: 18, targetY: 7 }, { x: 9, y: 13, target: 'CLASSROOM_HALL', targetX: 9, targetY: 1 }, { x: 10, y: 13, target: 'CLASSROOM_HALL', targetX: 10, targetY: 1 }],
         crowd: [{ gridX: 4, gridY: 3, spriteKey: 'student', facingRight: true }, { gridX: 16, gridY: 4, spriteKey: 'student', facingRight: false }, { gridX: 8, gridY: 10, spriteKey: 'student', facingRight: true }, { gridX: 14, gridY: 11, spriteKey: 'student', facingRight: false }, { gridX: 2, gridY: 7, spriteKey: 'student', facingRight: true }, { gridX: 18, gridY: 6, spriteKey: 'student', facingRight: false }]
+    },
+    'MAIN_OFFICE': {
+        name: "MAIN OFFICE", color: '#333355',
+        data: [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,3,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,4,4,4,4,4,0,0,3,3,3,3,3,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,3,3,3,3,3,0,0,5,5,0,1],[1,0,0,0,0,0,0,0,0,3,3,3,3,3,0,0,5,5,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]],
+        npcs: [
+            { id: 'pearson', name: 'Mrs Pearson', role: 'Office Manager', spriteKey: 'pearson', color: '#aa00aa', gridX: 2, gridY: 10, dialogue: ["Can't talk, sorting cover.", "But remember: AI often lacks local knowledge.", "If it sounds generic, check it!"] },
+            { id: 'staff1', name: 'Office Staff', role: 'Admin', spriteKey: 'julie', color: '#888888', gridX: 4, gridY: 4, dialogue: ["Busy, busy, busy..."], static: true },
+            { id: 'staff2', name: 'Office Staff', role: 'Admin', spriteKey: 'julie', color: '#888888', gridX: 12, gridY: 3, dialogue: ["Did you sign in?"], static: true }
+        ],
+        minions: [{gridX: 10, gridY: 9, spriteKey: 'bug', active: true}],
+        doors: [{ x: 19, y: 7, target: 'CORRIDOR', targetX: 1, targetY: 9 }],
+        crowd: []
     },
     'CANTEEN': {
         name: "THE CANTEEN", color: '#302020',
-        data: [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,3,3,3,3,0,0,3,3,3,3,0,0,3,3,3,3,0,0,1],[1,4,4,4,4,0,0,4,4,4,4,0,0,4,4,4,4,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,3,3,3,3,0,0,3,3,3,3,0,0,3,3,3,3,0,0,1],[1,4,4,4,4,0,0,4,4,4,4,0,0,4,4,4,4,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,6,6,6,6,6,6,6,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]],
+        data: [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,3,3,3,3,0,0,3,3,3,3,0,0,3,3,3,3,0,0,1],[1,4,4,4,4,0,0,4,4,4,4,0,0,4,4,4,4,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,3,3,3,3,0,0,3,3,3,3,0,0,3,3,3,3,0,0,1],[1,4,4,4,4,0,0,4,4,4,4,0,0,4,4,4,4,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,6,6,6,6,6,6,6,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]],
         npcs: [
             { id: 'julie', name: 'Julie', role: 'Canteen Staff', spriteKey: 'julie', color: '#ffffff', gridX: 10, gridY: 11, dialogue: ["Hi love! Need a break?", "Here, have a hot meal. It's on the house."], heal: true },
             { id: 'student_chicken', name: 'Student', role: 'Year 12', spriteKey: 'student', color: '#ddddff', gridX: 8, gridY: 10, dialogue: ["Do the bugs know it is Chicken Burger day?"] },
+            { id: 'student_art', name: 'Student', role: 'Year 13', spriteKey: 'student', color: '#ddddff', gridX: 3, gridY: 4, dialogue: ["I am just completing my Art Competition entry."], static: true },
+            { id: 'student_hungry', name: 'Student', role: 'Year 12', spriteKey: 'student', color: '#ddddff', gridX: 9, gridY: 4, dialogue: ["I am sooooooo hungry."], static: true },
             { id: 'mcdonald', name: 'Mr McDonald', role: 'Teacher', spriteKey: 'mcdonald', color: '#ffff00', gridX: 5, gridY: 8, dialogue: ["I am on duty. I hope the bugs do not mess with Bromcom today"] },
             { id: 'lakin', name: 'Mr Lakin', role: 'Teacher', spriteKey: 'lakin', color: '#8888ff', gridX: 15, gridY: 8, dialogue: ["The glitch best not break the laser cutter."] }
         ],
         minions: [],
-        doors: [{ x: 0, y: 7, target: 'CORRIDOR', targetX: 18, targetY: 3 }],
+        doors: [{ x: 0, y: 7, target: 'CORRIDOR', targetX: 18, targetY: 3 }, { x: 19, y: 7, target: 'ASTRO_TURF', targetX: 1, targetY: 7 }],
         crowd: [{ gridX: 2, gridY: 4, spriteKey: 'student', facingRight: true, static: true }, { gridX: 14, gridY: 4, spriteKey: 'student', facingRight: false, static: true }]
+    },
+    'ASTRO_TURF': {
+        name: "ASTRO TURF", color: '#38761d',
+        data: [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]],
+        npcs: [
+            { id: 'hemmings', name: 'Mr Hemmings', role: 'Teacher', spriteKey: 'hemmings', color: '#8b4513', gridX: 10, gridY: 13, dialogue: ["It is a bit nippy today", "Don't let AI write your code without understanding it", "Verify every fact.", "AI is a tool, not a replacement.", "Fancy a penalty shootout?", "Get 3 goals for a prize!"] }
+        ],
+        minions: [],
+        doors: [{ x: 0, y: 7, target: 'CANTEEN', targetX: 18, targetY: 7 }],
+        crowd: [
+            { gridX: 5, gridY: 5, spriteKey: 'student', facingRight: true, moveChance: 0.1 }, 
+            { gridX: 15, gridY: 8, spriteKey: 'student', facingRight: false, moveChance: 0.1 },
+            { gridX: 5, gridY: 9, spriteKey: 'student', facingRight: true, static: true }, 
+            { gridX: 15, gridY: 9, spriteKey: 'student', facingRight: false, static: true }, 
+            { 
+                gridX: 5, gridY: 9, spriteKey: 'ball', facingRight: true, 
+                behavior: 'passing', 
+                targets: [{x: 5, y: 9}, {x: 15, y: 9}], 
+                currentTarget: 1, 
+                pixelX: 5*40, pixelY: 9*40, 
+                waitTimer: 0
+            }
+        ]
     },
     'CHAPEL': {
         name: "THE CHAPEL", color: '#202040',
         data: [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,4,4,4,4,0,0,0,0,0,4,4,4,4,0,0,0,1],[1,0,0,4,4,4,4,0,0,0,0,0,4,4,4,4,0,0,0,1],[1,0,0,4,4,4,4,0,0,0,0,0,4,4,4,4,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,4,4,4,4,0,0,0,0,0,4,4,4,4,0,0,0,1],[1,0,0,4,4,4,4,0,0,0,0,0,4,4,4,4,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]],
         npcs: [
             { id: 'deacon', name: 'Deacon Martin', role: 'Chaplain', spriteKey: 'deacon', color: '#aaaaaa', gridX: 9, gridY: 2, dialogue: ["Peace be with you.", "Let me heal your weary soul."], heal: true },
-            { id: 'student_praying', name: 'Student', role: 'Year 13', spriteKey: 'student', color: '#ddddff', gridX: 12, gridY: 4, dialogue: ["Please let the bugs go away...", "Amen."] }
+            { id: 'student_praying_1', name: 'Student', role: 'Year 13', spriteKey: 'student_kneeling', color: '#ddddff', gridX: 12, gridY: 4, dialogue: ["Please let the bugs go away...", "Amen."], static: true },
+            { id: 'student_praying_2', name: 'Student', role: 'Year 12', spriteKey: 'student_kneeling', color: '#ddddff', gridX: 6, gridY: 4, dialogue: ["I hope I pass my mocks...", "Please guide me."], static: true },
+            { id: 'student_praying_3', name: 'Student', role: 'Year 13', spriteKey: 'student_kneeling', color: '#ddddff', gridX: 8, gridY: 10, dialogue: ["Quiet please, I am reflecting."], static: true }
         ],
         minions: [],
         doors: [{ x: 19, y: 7, target: 'CORRIDOR', targetX: 1, targetY: 5 }],
-        crowd: [{ gridX: 4, gridY: 4, spriteKey: 'student', facingRight: true, static: true }, { gridX: 4, gridY: 10, spriteKey: 'student', facingRight: true, static: true }]
+        crowd: []
     },
     'CLASSROOM_HALL': {
         name: "LOWER CORRIDOR", color: '#222222',
-        data: [[1,1,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[2,0,0,0,0,0,2,0,0,0,0,0,2,0,0,0,0,0,0,2],[1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1],[1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1],[1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],
-        npcs: [{ id: 'oneill_strict_ch', name: 'Mrs O\'Neill', role: 'Head of Behaviour', spriteKey: 'oneill_strict', color: '#ff0000', gridX: 3, gridY: 3, dialogue: [], autoInteract: true, damage: 10, messages: ["You are being too loud!", "I told you to get to lesson!"] }],
+        // Added door (2) at the bottom center (9, 8)
+        data: [[1,1,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[2,0,0,0,0,0,2,0,0,0,0,0,2,0,0,0,0,0,0,2],[1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1],[1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1],[1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],
+        npcs: [
+            { id: 'oneill_strict_ch', name: 'Mrs O\'Neill', role: 'Head of Behaviour', spriteKey: 'oneill_strict', color: '#ff0000', gridX: 3, gridY: 3, dialogue: [], autoInteract: true, damage: 10, messages: ["You are being too loud!", "I told you to get to lesson!", "This isn't a doss house!"] },
+            { id: 'patel', name: 'Miss Patel', role: 'Debate Club', spriteKey: 'patel', color: '#ff9900', gridX: 10, gridY: 3, dialogue: ["You should come to debate club.", "AI can be biased, so you need to think on your own.", "Debate club is a great place to do it."] }
+        ],
         minions: [],
-        doors: [{ x: 9, y: 0, target: 'CORRIDOR', targetX: 9, targetY: 12 }, { x: 10, y: 0, target: 'CORRIDOR', targetX: 10, targetY: 12 }, { x: 0, y: 4, target: 'CLASSROOM_1', targetX: 18, targetY: 7 }, { x: 6, y: 4, target: 'CLASSROOM_2', targetX: 9, targetY: 13 }, { x: 12, y: 4, target: 'CLASSROOM_3', targetX: 9, targetY: 13 }, { x: 19, y: 4, target: 'OFFICE', targetX: 1, targetY: 7 }],
+        // Added door to COMPUTER_SUITE
+        doors: [{ x: 9, y: 0, target: 'CORRIDOR', targetX: 9, targetY: 12 }, { x: 10, y: 0, target: 'CORRIDOR', targetX: 10, targetY: 12 }, { x: 0, y: 4, target: 'CLASSROOM_1', targetX: 18, targetY: 7 }, { x: 6, y: 4, target: 'CLASSROOM_2', targetX: 9, targetY: 13 }, { x: 12, y: 4, target: 'CLASSROOM_3', targetX: 9, targetY: 13 }, { x: 19, y: 4, target: 'OFFICE', targetX: 1, targetY: 7 }, { x: 9, y: 8, target: 'COMPUTER_SUITE', targetX: 9, targetY: 1 }, { x: 10, y: 8, target: 'COMPUTER_SUITE', targetX: 10, targetY: 1 }],
         crowd: []
+    },
+    'COMPUTER_SUITE': {
+        name: "COMPUTER SUITE", color: '#202030',
+        // 7 is the new Computer Tile
+        data: [[1,1,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,7,7,7,0,7,7,7,0,7,7,7,0,7,7,7,0,0,1],[1,0,4,4,4,0,4,4,4,0,4,4,4,0,4,4,4,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,7,7,7,0,7,7,7,0,7,7,7,0,7,7,7,0,0,1],[1,0,4,4,4,0,4,4,4,0,4,4,4,0,4,4,4,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,7,7,7,0,7,7,7,0,7,7,7,0,7,7,7,0,0,1],[1,0,4,4,4,0,4,4,4,0,4,4,4,0,4,4,4,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]],
+        npcs: [
+            { id: 'rose', name: 'Mrs Rose', role: 'IT Lead', spriteKey: 'rose', color: '#ff69b4', gridX: 2, gridY: 2, dialogue: ["Welcome to the Computer Suite!", "AI can generate code, but it cannot generate logic.", "Always debug AI output. It doesn't 'know' what it is writing!"] }
+        ],
+        minions: [{gridX: 9, gridY: 6, spriteKey: 'bug', active: true}],
+        doors: [{ x: 9, y: 0, target: 'CLASSROOM_HALL', targetX: 9, targetY: 7 }, { x: 10, y: 0, target: 'CLASSROOM_HALL', targetX: 10, targetY: 7 }],
+        crowd: [
+            // Row 1
+            { gridX: 2, gridY: 4, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 3, gridY: 4, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 4, gridY: 4, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 6, gridY: 4, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 7, gridY: 4, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 8, gridY: 4, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 10, gridY: 4, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 11, gridY: 4, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 12, gridY: 4, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 14, gridY: 4, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 15, gridY: 4, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 16, gridY: 4, spriteKey: 'student', facingRight: true, static: true },
+            // Row 2
+            { gridX: 2, gridY: 8, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 3, gridY: 8, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 4, gridY: 8, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 6, gridY: 8, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 7, gridY: 8, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 8, gridY: 8, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 10, gridY: 8, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 11, gridY: 8, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 12, gridY: 8, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 14, gridY: 8, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 15, gridY: 8, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 16, gridY: 8, spriteKey: 'student', facingRight: true, static: true },
+            // Row 3
+            { gridX: 2, gridY: 12, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 3, gridY: 12, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 4, gridY: 12, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 6, gridY: 12, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 7, gridY: 12, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 8, gridY: 12, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 10, gridY: 12, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 11, gridY: 12, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 12, gridY: 12, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 14, gridY: 12, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 15, gridY: 12, spriteKey: 'student', facingRight: true, static: true },
+            { gridX: 16, gridY: 12, spriteKey: 'student', facingRight: true, static: true }
+        ]
     },
     'CLASSROOM_1': {
         name: "CLASSROOM 1", color: '#252525',
         data: [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,3,3,0,3,3,0,3,3,0,3,3,0,0,0,0,0,0,0,1],[1,4,4,0,4,4,0,4,4,0,4,4,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,3,3,0,3,3,0,3,3,0,3,3,0,0,0,0,0,0,0,1],[1,4,4,0,4,4,0,4,4,0,4,4,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]],
-        npcs: [{ id: 'jones', name: 'Mr Jones', role: 'History', spriteKey: 'jones', color: '#aaffaa', gridX: 15, gridY: 2, dialogue: ["AI keeps hallucinating facts about the Tudors.", "I need real sources!"] }],
+        npcs: [{ id: 'jones', name: 'Mr Jones', role: 'History', spriteKey: 'jones', color: '#aaffaa', gridX: 15, gridY: 2, dialogue: ["The Berlin and Belgium trip is simply the best experience!", "Use AI for research, but verify everything.", "We cannot have hallucinations when discussing World War 2."] }],
         minions: [{gridX:5,gridY:5,spriteKey:'bug',active:true}], doors: [{x:19,y:7,target:'CLASSROOM_HALL',targetX:1,targetY:4}],
         crowd: [{ gridX: 2, gridY: 4, spriteKey: 'student', facingRight: true, static: true }, { gridX: 5, gridY: 4, spriteKey: 'student', facingRight: true, static: true }, { gridX: 8, gridY: 10, spriteKey: 'student', facingRight: true, static: true }]
     },
     'CLASSROOM_2': {
         name: "CLASSROOM 2", color: '#252525',
         data: [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,3,3,0,3,3,0,3,3,0,3,3,0,0,0,0,0,0,0,1],[1,4,4,0,4,4,0,4,4,0,4,4,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,3,3,0,3,3,0,3,3,0,3,3,0,0,0,0,0,0,0,1],[1,4,4,0,4,4,0,4,4,0,4,4,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]],
-        npcs: [{ id: 'russell', name: 'Miss Russell', role: 'Science', spriteKey: 'russell', color: '#aaaaff', gridX: 2, gridY: 2, dialogue: ["Data must be verified.", "Don't let AI make up your results."] }],
+        npcs: [{ id: 'russell', name: 'Miss Russell', role: 'Science', spriteKey: 'russell', color: '#aaaaff', gridX: 2, gridY: 2, dialogue: ["Biology unlocks the secrets of life—it is truly the best subject!", "Ensure you verify all your data; AI cannot replace real experiments.", "On another note, Wicked is absolutely amazing. You must go see it!"] }],
         minions: [{gridX:10,gridY:8,spriteKey:'bug',active:true}], doors: [{x:9,y:13,target:'CLASSROOM_HALL',targetX:6,targetY:5}],
         crowd: [{ gridX: 4, gridY: 4, spriteKey: 'student', facingRight: true, static: true }, { gridX: 10, gridY: 4, spriteKey: 'student', facingRight: true, static: true }, { gridX: 2, gridY: 10, spriteKey: 'student', facingRight: true, static: true }]
     },
     'CLASSROOM_3': {
         name: "CLASSROOM 3", color: '#252525',
         data: [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,3,3,0,3,3,0,3,3,0,3,3,0,0,0,0,0,0,0,1],[1,4,4,0,4,4,0,4,4,0,4,4,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,3,3,0,3,3,0,3,3,0,3,3,0,0,0,0,0,0,0,1],[1,4,4,0,4,4,0,4,4,0,4,4,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]],
-        npcs: [{ id: 'mckeown', name: 'Mrs McKeown', role: 'English', spriteKey: 'mckeown', color: '#ffaaaa', gridX: 15, gridY: 2, dialogue: ["Where is your voice?", "This essay sounds like a robot wrote it."] }],
+        npcs: [
+            { id: 'mckeown', name: 'Mrs McKeown', role: 'English', spriteKey: 'mckeown', color: '#ffaaaa', gridX: 15, gridY: 2, dialogue: ["We are studying 'An Inspector Calls' today.", "Mr Birling would love AI...", "...because he could just sack people more easily!", "Make sure your work has your own human voice."] },
+            { id: 'herron', name: 'Mrs Herron', role: 'English', spriteKey: 'herron', color: '#ffff00', gridX: 2, gridY: 2, dialogue: ["'I think of thee!' - Sonnet 29 by Elizabeth Barrett Browning.", "It is part of the Love and Relationships Cluster.", "AI cannot replicate the passion of 'wild vines' around a tree!"] }
+        ],
         minions: [{gridX:14,gridY:5,spriteKey:'bug',active:true}], doors: [{x:9,y:13,target:'CLASSROOM_HALL',targetX:12,targetY:5}],
         crowd: [{ gridX: 1, gridY: 4, spriteKey: 'student', facingRight: true, static: true }, { gridX: 7, gridY: 4, spriteKey: 'student', facingRight: true, static: true }, { gridX: 5, gridY: 10, spriteKey: 'student', facingRight: true, static: true }]
     },
     'OFFICE': {
         name: "MRS GRANT'S OFFICE", color: '#301010',
-        data: [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]],
+        data: [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,5,0,3,0,3,0,3,0,0,0,3,0,3,0,3,0,5,1],[1,0,0,4,0,4,0,4,0,0,0,4,0,4,0,4,0,0,1],[1,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,4,0,4,0,4,0,0,0,4,0,4,0,4,0,0,1],[1,5,0,3,0,3,0,3,0,0,0,3,0,3,0,3,0,5,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]],
         npcs: [{ id: 'grant_final', name: 'Mrs Grant', role: 'Head of Sixth Form', spriteKey: 'grant', color: '#ff5555', gridX: 16, gridY: 7, dialogue: ["The Main Glitch is right there!", "Defeat it to recover the JCQ Guidance data!"] }],
         minions: [],
         doors: [{ x: 0, y: 7, target: 'CLASSROOM_HALL', targetX: 18, targetY: 4 }],
-        boss: { active: true, gridX: 9, gridY: 5, spriteKey: 'glitch', hp: 200 },
+        boss: { active: true, gridX: 9, gridY: 5, spriteKey: 'glitch', hp: 100 },
         crowd: []
     }
 };
-const STATE = { INTRO: 0, ROAM: 1, DIALOGUE: 2, BATTLE: 3, GAMEOVER: 4, WIN: 5, TRANSITION: 6 };
+const STATE = { INTRO: 0, ROAM: 1, DIALOGUE: 2, BATTLE: 3, GAMEOVER: 4, WIN: 5, TRANSITION: 6, PENALTY: 7 };
 let currentState = STATE.INTRO;
 let frames = 0;
 let winTimer = 0; 
@@ -644,6 +746,18 @@ let pendingAction = '';
 let battleTargetIndex = -1; // Added to track which minion
 let pendingDamage = 0;
 
+// Penalty Shootout Global Vars
+let penaltyActive = false;
+let penaltyScore = 0;
+let penaltyShots = 0;
+let penaltyTargetX = 400;
+let penaltyTargetSpeed = 8;
+let penaltyGoalkeeperX = 400;
+let penaltyBallX = 400;
+let penaltyBallY = 500;
+let penaltyState = 'AIM'; // AIM, SHOOT, RESULT
+let penaltyMsg = "";
+
 const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, " ": false };
 let keyProcessed = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, " ": false };
 
@@ -663,12 +777,154 @@ function startDialogue(npc) {
     document.getElementById('dialogue-box').style.display = 'block';
     document.getElementById('dialogue-name').innerText = dialogueSpeaker;
     document.getElementById('dialogue-text').innerText = dialogueQueue[0];
+    
+    // Reset name color to red (default) for everyone including Mrs Pearson
+    document.getElementById('dialogue-name').style.color = '#d00';
+
     player.interactionCooldown = 15;
 }
 function advanceDialogue() {
     dialogueQueue.shift();
-    if (dialogueQueue.length === 0) { currentState = STATE.ROAM; document.getElementById('dialogue-box').style.display = 'none'; player.interactionCooldown = 20; }
+    if (dialogueQueue.length === 0) { 
+        currentState = STATE.ROAM; 
+        document.getElementById('dialogue-box').style.display = 'none'; 
+        player.interactionCooldown = 20; 
+        // Check for Hemmings game trigger
+        if (dialogueSpeaker === "Mr Hemmings") {
+             initPenalty();
+        }
+    }
     else { document.getElementById('dialogue-text').innerText = dialogueQueue[0]; player.interactionCooldown = 15; }
+}
+
+// --- PENALTY SHOOTOUT VARIABLES & FUNCTIONS ---
+function initPenalty() {
+    currentState = STATE.PENALTY;
+    penaltyScore = 0;
+    penaltyShots = 0;
+    penaltyState = 'AIM';
+    penaltyMsg = "Take 5 shots! Goal: 3";
+    penaltyTargetX = 400;
+    penaltyTargetSpeed = 4; // Reduced from 8 to 4 (Slower Aim)
+    penaltyGoalkeeperX = 400;
+    penaltyBallX = 400;
+    penaltyBallY = 500;
+}
+
+function updatePenalty() {
+    if (penaltyState === 'AIM') {
+        penaltyTargetX += penaltyTargetSpeed;
+        if (penaltyTargetX > 600 || penaltyTargetX < 200) penaltyTargetSpeed *= -1;
+        // Slower Goalie movement (0.03 instead of 0.05)
+        penaltyGoalkeeperX = 400 + Math.sin(frames * 0.03) * 120; 
+
+        if (keys[" "] && !keyProcessed[" "]) {
+            keyProcessed[" "] = true;
+            penaltyState = 'SHOOT';
+            playSound('HIT');
+        }
+    } else if (penaltyState === 'SHOOT') {
+        penaltyBallY -= 8; // Slower shot speed (was 15)
+        const dx = (penaltyTargetX - 400) * 0.05; // Adjusted angle calculation
+        penaltyBallX += dx;
+
+        if (penaltyBallY < 150) { // Reached goal line (150 is deeper in net)
+            // Improved Collision: 
+            // Goalie width is 80px, so center +/- 40px is a hit. 
+            // Added slightly tighter hitbox (50) to feel fairer.
+            if (Math.abs(penaltyBallX - penaltyGoalkeeperX) < 50) {
+                penaltyState = 'RESULT';
+                penaltyMsg = "SAVED by the Bug!";
+                playSound('WRONG');
+            } else if (penaltyBallX > 190 && penaltyBallX < 610) { // Hitting posts or inside
+                penaltyState = 'RESULT';
+                penaltyScore++;
+                penaltyMsg = "GOAL!";
+                playSound('CORRECT');
+            } else {
+                penaltyState = 'RESULT';
+                penaltyMsg = "MISS!";
+                playSound('WRONG');
+            }
+            penaltyShots++;
+        }
+    } else if (penaltyState === 'RESULT') {
+        if (keys[" "] && !keyProcessed[" "]) {
+            keyProcessed[" "] = true;
+            if (penaltyShots < 5) {
+                penaltyState = 'AIM';
+                penaltyBallX = 400;
+                penaltyBallY = 500;
+                penaltyMsg = `Score: ${penaltyScore}/${penaltyShots}`;
+            } else {
+                // End Game
+                currentState = STATE.ROAM;
+                // CRITICAL FIX: Reset cooldown so dialogue can actually start
+                player.interactionCooldown = 0; 
+                
+                if (penaltyScore >= 3) {
+                    player.hp = player.maxHp;
+                    // Name changed to 'Coach Hemmings' to prevent infinite game loop in advanceDialogue
+                    startDialogue({ name: 'Coach Hemmings', role: 'Coach', dialogue: ["Well done!", `You scored ${penaltyScore}/5!`, "Here is your prize: A Stamina Boost!", "Your HP is fully restored!"], heal: true });
+                } else {
+                    startDialogue({ name: 'Coach Hemmings', role: 'Coach', dialogue: ["Unlucky!!!", `Only ${penaltyScore}/5 goals.`, "Keep practicing!"] });
+                }
+            }
+        }
+    }
+}
+
+function drawPenalty() {
+    // Draw Pitch
+    ctx.fillStyle = '#38761d';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw Goal
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(190, 100, 420, 10); // Top bar
+    ctx.fillRect(190, 100, 10, 100); // Left post
+    ctx.fillRect(600, 100, 10, 100); // Right post
+    
+    // Draw Net
+    ctx.strokeStyle = "rgba(255,255,255,0.5)";
+    ctx.beginPath();
+    for(let i=200; i<=600; i+=20) { ctx.moveTo(i, 100); ctx.lineTo(i, 200); }
+    ctx.stroke();
+
+    // Draw Goalie
+    drawSprite(ctx, 'bug', penaltyGoalkeeperX - 40, 150, 80, true);
+
+    // Draw Player
+    if (penaltyState === 'AIM') {
+        drawSprite(ctx, 'player', 360, 500, 80, false);
+    }
+
+    // Draw Ball
+    drawSprite(ctx, 'ball', penaltyBallX - 20, penaltyBallY - 20, 40, true);
+
+    // Draw Target Reticle
+    if (penaltyState === 'AIM') {
+        ctx.strokeStyle = '#ff0000';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(penaltyTargetX, 180, 20, 0, Math.PI*2);
+        ctx.stroke();
+        ctx.moveTo(penaltyTargetX - 25, 180); ctx.lineTo(penaltyTargetX + 25, 180);
+        ctx.moveTo(penaltyTargetX, 155); ctx.lineTo(penaltyTargetX, 205);
+        ctx.stroke();
+    }
+
+    // UI
+    ctx.fillStyle = '#000';
+    ctx.font = '20px "Press Start 2P"';
+    ctx.fillText(penaltyMsg, 400, 50);
+    ctx.font = '14px "Press Start 2P"';
+    ctx.fillText(`Shots: ${penaltyShots}/5  Score: ${penaltyScore}`, 400, 80);
+    
+    if (penaltyState === 'RESULT') {
+        ctx.fillStyle = '#fff';
+        ctx.fillText("Press [A] to Continue", 400, 550);
+    }
 }
 
 // --- MATRIX RAIN ---
@@ -953,18 +1209,51 @@ function update() {
         
         const handleEntityMove = (p, isNpc) => {
             if (p.static) return;
+            if (p.behavior === 'passing') {
+                // Custom Passing Logic
+                if (!p.waitTimer) p.waitTimer = 0;
+                if (p.waitTimer > 0) {
+                    p.waitTimer--;
+                    return;
+                }
+                const target = p.targets[p.currentTarget];
+                const tx = target.x * TILE_SIZE;
+                const ty = target.y * TILE_SIZE;
+                const dx = tx - p.pixelX;
+                const dy = ty - p.pixelY;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                const speed = 3; // SLOWED DOWN BALL (Was 6)
+                
+                if (dist < speed) {
+                    p.pixelX = tx;
+                    p.pixelY = ty;
+                    p.waitTimer = 60; // Wait 1 second at feet
+                    p.currentTarget = (p.currentTarget + 1) % p.targets.length;
+                } else {
+                    p.pixelX += (dx / dist) * speed;
+                    p.pixelY += (dy / dist) * speed;
+                }
+                return;
+            }
+
             if (p.isMoving) {
-                const speed = 2; const dx = p.targetPixelX - p.pixelX; const dy = p.targetPixelY - p.pixelY;
+                const speed = 1; // SLOWED DOWN NPCS (Was 2)
+                const dx = p.targetPixelX - p.pixelX; 
+                const dy = p.targetPixelY - p.pixelY;
                 if (Math.abs(dx) <= speed && Math.abs(dy) <= speed) { p.pixelX = p.targetPixelX; p.pixelY = p.targetPixelY; p.isMoving = false; } else { p.pixelX += Math.sign(dx) * speed; p.pixelY += Math.sign(dy) * speed; }
-            } else if ((isNpc && p.spriteKey === 'oneill_strict' && Math.random() < 0.03) || (!isNpc && Math.random() < 0.02)) { 
-                const dir = Math.floor(Math.random() * 4); let dx = 0, dy = 0; if (dir===0) dy=-1; else if(dir===1) dy=1; else if(dir===2) dx=-1; else dx=1;
-                const nx = p.gridX + dx; const ny = p.gridY + dy;
-                if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS) {
-                    const t = activeMap[ny][nx];
-                    if (t === 0 && !(nx===player.gridX && ny===player.gridY)) {
-                          let hitNPC = activeNPCs.some(n => n.gridX === nx && n.gridY === ny);
-                          let hitCrowd = activeCrowd.some(c => c !== p && c.gridX === nx && c.gridY === ny);
-                          if (!hitNPC && !hitCrowd) { p.gridX = nx; p.gridY = ny; p.targetPixelX = nx * TILE_SIZE; p.targetPixelY = ny * TILE_SIZE; p.isMoving = true; p.facingRight = dx > 0; }
+            } else {
+                // Standard movement chance is 0.02 or use entity specific moveChance
+                const chance = p.moveChance || ((isNpc && p.spriteKey === 'oneill_strict') ? 0.03 : 0.02);
+                if (Math.random() < chance) { 
+                    const dir = Math.floor(Math.random() * 4); let dx = 0, dy = 0; if (dir===0) dy=-1; else if(dir===1) dy=1; else if(dir===2) dx=-1; else dx=1;
+                    const nx = p.gridX + dx; const ny = p.gridY + dy;
+                    if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS) {
+                        const t = activeMap[ny][nx];
+                        if (t === 0 && !(nx===player.gridX && ny===player.gridY)) {
+                              let hitNPC = activeNPCs.some(n => n.gridX === nx && n.gridY === ny);
+                              let hitCrowd = activeCrowd.some(c => c !== p && c.gridX === nx && c.gridY === ny);
+                              if (!hitNPC && !hitCrowd) { p.gridX = nx; p.gridY = ny; p.targetPixelX = nx * TILE_SIZE; p.targetPixelY = ny * TILE_SIZE; p.isMoving = true; p.facingRight = dx > 0; }
+                        }
                     }
                 }
             }
@@ -988,8 +1277,10 @@ function update() {
             for (let pos of adj) { for (let npc of activeNPCs) { if (npc.autoInteract && npc.gridX === pos.x && npc.gridY === pos.y) { const msg = npc.messages[Math.floor(Math.random() * npc.messages.length)]; player.hp -= npc.damage; playSound('ALERT'); if (player.hp <= 0) { loseGame("Caught by Mrs O'Neill!"); return; } startDialogue({ name: npc.name, role: npc.role, color: npc.color, dialogue: [msg, `[-${npc.damage} HP]`] }); player.autoInteractCooldown = 180; break; } } }
         }
         if (player.isMoving) {
-            const speed = 4; const dx = player.targetX - player.x; const dy = player.targetY - player.y;
-            if (Math.abs(dx) <= speed && Math.abs(dy) <= speed) { player.x = player.targetX; player.y = player.targetY; player.isMoving = false; } else { player.x += Math.sign(dx) * speed; player.y += Math.sign(dy) * speed; player.bobFrame += 0.2; }
+            const speed = 2; // SLOWED DOWN PLAYER (Was 4)
+            const dx = player.targetX - player.x; 
+            const dy = player.targetY - player.y;
+            if (Math.abs(dx) <= speed && Math.abs(dy) <= speed) { player.x = player.targetX; player.y = player.targetY; player.isMoving = false; } else { player.x += Math.sign(dx) * speed; player.y += Math.sign(dy) * speed; player.bobFrame += 0.1; } // Slower bob
         } else if (!introCutsceneActive && !officeCutsceneActive) {
             if (keys.ArrowUp) tryMove(0, -1); else if (keys.ArrowDown) tryMove(0, 1); else if (keys.ArrowLeft) tryMove(-1, 0); else if (keys.ArrowRight) tryMove(1, 0);
         }
@@ -1001,9 +1292,11 @@ function update() {
     }
     if (currentState === STATE.DIALOGUE) { if (keys[" "] && !keyProcessed[" "] && player.interactionCooldown === 0) { keyProcessed[" "] = true; advanceDialogue(); } if (player.interactionCooldown > 0) player.interactionCooldown--; }
     if (currentState === STATE.BATTLE) updateBattle();
+    if (currentState === STATE.PENALTY) updatePenalty();
 }
 function drawMapScreen() {
     ctx.fillStyle = activeRoom.color || COLORS.floor;
+    if (activeRoom.name === "ASTRO TURF") ctx.fillStyle = COLORS.astroFloor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     for (let y = 0; y < ROWS; y++) {
@@ -1024,9 +1317,26 @@ function drawMapScreen() {
                 drawSprite(ctx, 'plant', x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, true);
             } else if (tile === 6) { // Altar/Counter
                 drawSprite(ctx, 'table', x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, true);
+            } else if (tile === 7) { // Computer
+                drawSprite(ctx, 'computer', x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, true);
             }
         }
     }
+    // Astro Turf Markings
+    if (activeRoom.name === "ASTRO TURF") {
+        ctx.strokeStyle = "rgba(255,255,255,0.3)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        // Mid line
+        ctx.moveTo(canvas.width/2, 40);
+        ctx.lineTo(canvas.width/2, canvas.height-40);
+        ctx.stroke();
+        // Center circle
+        ctx.beginPath();
+        ctx.arc(canvas.width/2, canvas.height/2, 50, 0, Math.PI*2);
+        ctx.stroke();
+    }
+
     ctx.textAlign = 'center';
     
     // Draw Crowd
@@ -1232,6 +1542,7 @@ function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (currentState === STATE.TRANSITION) { drawMapScreen(); const p = 1 - (transitionTimer / 90); const h = (canvas.height / 2) * p; ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, h); ctx.fillRect(0, canvas.height - h, canvas.width, h); if (transitionTimer % 4 < 2) { ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'; ctx.fillRect(0, 0, canvas.width, canvas.height); } return; }
     if (currentState === STATE.BATTLE) { drawBattle(); return; }
+    if (currentState === STATE.PENALTY) { drawPenalty(); return; }
     if (currentState === STATE.WIN || currentState === STATE.GAMEOVER) { drawEndScreen(); return; }
     drawMapScreen();
 }
